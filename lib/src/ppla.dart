@@ -604,7 +604,10 @@ final A_Feed_Label =
 //     please change to use A_Get_DLL_VersionA().
 //     If you must use A_Get_DLL_Version(), please reference MSDN.
 // typedef char* (_stdcall* pfnA_Get_DLL_Version)(int nShowMessage);
-final A_Get_DLL_Version = _dll.lookupFunction<
+String aGetDllVersion(int nShowMessage) =>
+    _aGetDllVersion(nShowMessage).toDartString();
+
+final _aGetDllVersion = _dll.lookupFunction<
     Pointer<Utf8> Function(Int64 nShowMessage),
     Pointer<Utf8> Function(int nShowMessage)>('A_Get_DLL_Version');
 // typedef int   (_stdcall *pfnA_Get_DLL_VersionA)(int nShowMessage);
