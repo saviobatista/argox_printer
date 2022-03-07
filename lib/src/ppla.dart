@@ -12,22 +12,23 @@ import 'package:ffi/ffi.dart';
 import 'package:path/path.dart';
 
 //Internal helpers to load and configure library
-String _red(String string) => '\x1B[31m$string\x1B[0m';
-String _yellow(String string) => '\x1B[32m$string\x1B[0m';
+// String _red(String string) => '\x1B[31m$string\x1B[0m';
+// String _yellow(String string) => '\x1B[32m$string\x1B[0m';
 DynamicLibrary _setupDll() {
   ///relative path to
-  final String AssetsPackageDir = normalize(
+  final String _assetsPackageDir = normalize(
       join('data', 'flutter_assets', 'packages', 'argox_printer', 'assets'));
   final String _exeDirPath = File(Platform.resolvedExecutable).parent.path;
-  final String _packageAssetsDirPath = normalize(join(Directory.current.path,
-      'assets')); //normalize(join(exeDirPath, assets_package_dir));
+  //final String _packageAssetsDirPath = normalize(join(Directory.current.path,'assets'));
+  final String _packageAssetsDirPath =
+      normalize(join(_exeDirPath, _assetsPackageDir));
 
-//PPLA Winppla.dll FullPath  destination
+  //PPLA Winppla.dll FullPath  destination
   final String _libDllDestFullPath =
       normalize(join(_exeDirPath, 'Winppla.dll'));
   final String _lib2DllDestFullPath =
       normalize(join(_exeDirPath, 'WinPort.dll'));
-//PPLA Winppla.dll FullPath  source
+  //PPLA Winppla.dll FullPath  source
   final String _libDllSourceFullPath =
       normalize(join(_packageAssetsDirPath, 'Winppla.dll'));
   final String _lib2DllSourceFullPath =
@@ -42,25 +43,14 @@ DynamicLibrary _setupDll() {
         normalize(join(Directory.current.path, 'assets'));
     String _printerLibraryPath =
         normalize(join(_packageAssetsDirPath, 'Winppla.dll'));
-    print('WinPPLALibraryPath: $_printerLibraryPath');
 
     DynamicLibrary _library = DynamicLibrary.open(_printerLibraryPath);
-
-    print(_yellow("WinPPLA successfully loaded"));
     return _library;
   } catch (e) {
     try {
-      print(e);
-      print(_red("Failed to load WinPPLA from library file, "
-          "trying loading from system..."));
-
       DynamicLibrary _library = DynamicLibrary.open('Winppla.dll');
-
-      print(_yellow("WinPPLA successfully loaded"));
       return _library;
     } catch (e) {
-      print(e);
-      print(_red("Fail to load WinPPLA."));
       return DynamicLibrary.process();
     }
   }
@@ -393,42 +383,42 @@ final A_Bar2d_DataMatrix = _dll.lookupFunction<
   Pointer<Utf8> data,
 )>('A_Bar2d_DataMatrix');
 // *******************************************************************************
-// A_Clear_Memory()
+// aClearMemory()
 // ===============================================================================
 // PURPOSE   Clear Flash memory.
 // SYNTAX
-//     void A_Clear_Memory(void);
+//     void aClearMemory(void);
 // EXAMPLE
-//     A_Clear_Memory();
-// REMARK  The A_Clear_Memory function will clear all the graphics and soft fonts
+//     aClearMemory();
+// REMARK  The aClearMemory function will clear all the graphics and soft fonts
 //     which stored in the printers flash memory. Normally
-//     this function is sent before the A_Print_Out(). Otherwise the graphics
+//     this function is sent before the aPrintOut(). Otherwise the graphics
 //     and fonts will be accumulated, and cause memory overflow. When "memory
 //     full" occurs, the printer will erase the first-in graphics or fonts.
 //     To avoid memory full and save processing time, you may send this
-//     function before the A_Print_Out().
-// typedef void  (_stdcall *pfnA_Clear_Memory)(void);
-final A_Clear_Memory =
+//     function before the aPrintOut().
+// typedef void  (_stdcall *pfnaClearMemory)(void);
+final aClearMemory =
     _dll.lookupFunction<Void Function(), void Function()>('A_Clear_Memory');
 // *******************************************************************************
-// A_ClosePrn()
+// aClosePrn()
 // ===============================================================================
 // PURPOSE   Stop printer operation.
 // SYNTAX
-//     void A_ClosePrn(void);
+//     void aClosePrn(void);
 // EXAMPLE
-//     A_ClosePrn();
-// REMARK  The A_ClosePrn function will access the port that you choiced or close
+//     aClosePrn();
+// REMARK  The aClosePrn function will access the port that you choiced or close
 //     file. The function must be performed after all commands placed.
-// typedef void  (_stdcall *pfnA_ClosePrn)(void);
-final A_ClosePrn =
+// typedef void  (_stdcall *pfnaClosePrn)(void);
+final aClosePrn =
     _dll.lookupFunction<Void Function(), void Function()>('A_ClosePrn');
 // *******************************************************************************
-// A_CreatePrn()
+// aCreatePrn()
 // ===============================================================================
 // PURPOSE   Start PPLA Library opreation.
 // SYNTAX
-//     int A_CreatePrn(int selection, LPCTSTR filename);
+//     int aCreatePrn(int selection, LPCTSTR filename);
 // PARAMETER
 //     selection;
 //       To select the printer port.
@@ -449,22 +439,24 @@ final A_ClosePrn =
 //     0 -> OK.
 //     Reference AW-Error.txt file.
 // EXAMPLE
-//     A_CreatePrn(1,NULL); or A_CreatePrn(0,"C:\\out.prn");
-//     A_CreatePrn(10,"\\\\allen\\Label");  //share mode.
-// REMARK  The A_CreatePrn() function will activate a valid printer port or
+//     aCreatePrn(1,NULL); or aCreatePrn(0,"C:\\out.prn");
+//     aCreatePrn(10,"\\\\allen\\Label");  //share mode.
+// REMARK  The aCreatePrn() function will activate a valid printer port or
 //     "print to file" path. This function must be performed before all commands.
-//     A_CreatePrn(), A_CreateUSBPort(), A_CreateNetPort() and A_CreatePort()
+//     aCreatePrn(), aCreateUsbPort(), A_CreateNetPort() and A_CreatePort()
 //     must use one of it at once.
-// typedef int   (_stdcall *pfnA_CreatePrn)(int selection, LPCTSTR filename);
-final A_CreatePrn = _dll.lookupFunction<
+// typedef int   (_stdcall *pfnaCreatePrn)(int selection, LPCTSTR filename);
+int aCreatePrn(int selection, String filename) =>
+    _aCreatePrn(selection, filename.toNativeUtf8());
+final _aCreatePrn = _dll.lookupFunction<
     Int64 Function(Int64 selection, Pointer<Utf8> filename),
     int Function(int selection, Pointer<Utf8> filename)>('A_CreatePrn');
 // *******************************************************************************
-// A_Del_Graphic()
+// aDelGraphic()
 // ===============================================================================
 // PURPOSE   Clean the stored "graphic data" in RAM or Flash memory.
 // SYNTAX
-//     int A_Del_Graphic(int mem_mode, char graphic[10]);
+//     int aDelGraphic(int mem_mode, char graphic[10]);
 // PARAMETER
 //     mem_mode;
 //       Memory mode, 1 => RAM, 2 => Flash Memory
@@ -474,20 +466,22 @@ final A_CreatePrn = _dll.lookupFunction<
 //     0 -> OK.
 //     Reference AW-Error.txt file.
 // EXAMPLE
-//     A_Del_Graphic(1, "AA");
-// REMARK  The A_Del_Graphic function will delete the graphics data which already
+//     aDelGraphic(1, "AA");
+// REMARK  The aDelGraphic function will delete the graphics data which already
 //     stored in printers RAM or flash memory. If certain gragics data was
 //     deleted, it will not be retrieved and printed unless be reloaded.
-// typedef int   (_stdcall *pfnA_Del_Graphic)(int mem_mode, char graphic[10]);
-final A_Del_Graphic = _dll.lookupFunction<
+// typedef int   (_stdcall *pfnaDelGraphic)(int mem_mode, char graphic[10]);
+int aDelGraphic(int memMode, String graphic) =>
+    _aDelGraphic(memMode, graphic.toNativeUtf8());
+final _aDelGraphic = _dll.lookupFunction<
     Int64 Function(Int64 mem_mode, Pointer<Utf8> graphic),
     int Function(int mem_mode, Pointer<Utf8> graphic)>('A_Del_Graphic');
 // *******************************************************************************
-// A_Draw_Box()
+// aDrawBox()
 // ===============================================================================
 // PURPOSE   Create a "box" object.
 // SYNTAX
-//     int A_Draw_Box(char mode, int x, int y, int width, int height, int top, int side);
+//     int aDrawBox(char mode, int x, int y, int width, int height, int top, int side);
 // PARAMETER
 //     mode;
 //       Set logical OR or XOR operation. A for XOR, N for OR.
@@ -507,11 +501,14 @@ final A_Del_Graphic = _dll.lookupFunction<
 //     0 -> OK.
 //     Reference AW-Error.txt file.
 // EXAMPLE
-//     A_Draw_Box('N', 260, 30, 130, 105, 4, 4);
-// REMARK  The A_Draw_Box function will draw a box by "OR" or "XOR" operation.
-// typedef int   (_stdcall *pfnA_Draw_Box)(char mode, int x, int y, int width, int height, int top,
+//     aDrawBox('N', 260, 30, 130, 105, 4, 4);
+// REMARK  The aDrawBox function will draw a box by "OR" or "XOR" operation.
+// typedef int   (_stdcall *pfnaDrawBox)(char mode, int x, int y, int width, int height, int top,
 // 						 int side);
-final A_Draw_Box = _dll.lookupFunction<
+int aDrawBox(
+        String mode, int x, int y, int width, int height, int top, int side) =>
+    _aDrawBox(mode.toNativeUtf8(), x, y, width, height, top, side);
+final _aDrawBox = _dll.lookupFunction<
     Int64 Function(
   Pointer<Utf8> mode,
   Int64 x,
@@ -531,11 +528,11 @@ final A_Draw_Box = _dll.lookupFunction<
   int side,
 )>('A_Draw_Box');
 // *******************************************************************************
-// A_Draw_Line()
+// aDrawLine()
 // ===============================================================================
 // PURPOSE   Create an "line" object.
 // SYNTAX
-//     int A_Draw_Line(char mode, int x, int y, int width, int height);
+//     int aDrawLine(char mode, int x, int y, int width, int height);
 // PARAMETER
 //     mode;
 //       Set logical OR or XOR operation. A for XOR, N for OR.
@@ -551,10 +548,12 @@ final A_Draw_Box = _dll.lookupFunction<
 //     0 -> OK.
 //     Reference AW-Error.txt file.
 // EXAMPLE
-//     A_Draw_Line('A', 285, 77, 2, 30);
+//     aDrawLine('A', 285, 77, 2, 30);
 // REMARK  The Draw_Line function will draw a line by "OR" or "XOR" operation.
-// typedef int   (_stdcall *pfnA_Draw_Line)(char mode, int x, int y, int width, int height);
-final A_Draw_Line = _dll.lookupFunction<
+// typedef int   (_stdcall *pfnaDrawLine)(char mode, int x, int y, int width, int height);
+int aDrawLine(String mode, int x, int y, int width, int height) =>
+    _aDrawLine(mode.toNativeUtf8(), x, y, width, height);
+final _aDrawLine = _dll.lookupFunction<
     Int64 Function(
         Pointer<Utf8> mode, Int64 x, Int64 y, Int64 width, Int64 height),
     int Function(Pointer<Utf8> mode, int x, int y, int width,
@@ -575,24 +574,24 @@ final A_Feed_Label =
     _dll.lookupFunction<Void Function(), void Function()>('A_Feed_Label');
 // ******************************************************************************
 // A_Get_DLL_Version()
-// A_Get_DLL_VersionA()
+// aGetDllVersionA()
 // ==============================================================================
 // PURPOSE   Get or show this verison for library.
 // SYNTAX
 //     char* A_Get_DLL_Version(int nShowMessage);
-//     int A_Get_DLL_VersionA(int nShowMessage);
+//     int aGetDllVersionA(int nShowMessage);
 // PARAMETER
 //     nShowMessage;
 //       0 -> The message dailog isn't showed.
 //       1 -> The message dailog is showed.
 // RETURN
 //     A_Get_DLL_Version();  Library verison string, if fail return NULL.
-//     A_Get_DLL_VersionA();  return version value.
+//     aGetDllVersionA();  return version value.
 //                            MainVersion = (return version value) / 100.
 //                            SubVersion = (return version value) % 100.
 // EXAMPLE
 //     int nVersion, nMainVersion, nSubVersion;
-//     nVersion = A_Get_DLL_VersionA(1);
+//     nVersion = aGetDllVersionA(1);
 //     nMainVersion = nVersion / 100;
 //     nSubVersion = nVersion % 100;
 // REMARK  The A_Get_DLL_Version function is used to get or show this verison for
@@ -601,7 +600,7 @@ final A_Feed_Label =
 //     If using VB and VBA to develop, need to use RtlMoveMemory() to convert,
 //     there is technical difficulty to using RtlMoveMemory().
 //     If you use VB and VBA to develop propose not using this function,
-//     please change to use A_Get_DLL_VersionA().
+//     please change to use aGetDllVersionA().
 //     If you must use A_Get_DLL_Version(), please reference MSDN.
 // typedef char* (_stdcall* pfnA_Get_DLL_Version)(int nShowMessage);
 String aGetDllVersion(int nShowMessage) =>
@@ -610,9 +609,8 @@ String aGetDllVersion(int nShowMessage) =>
 final _aGetDllVersion = _dll.lookupFunction<
     Pointer<Utf8> Function(Int64 nShowMessage),
     Pointer<Utf8> Function(int nShowMessage)>('A_Get_DLL_Version');
-// typedef int   (_stdcall *pfnA_Get_DLL_VersionA)(int nShowMessage);
-final A_Get_DLL_VersionA = _dll.lookupFunction<
-    Int64 Function(Int64 nShowMessage),
+// typedef int   (_stdcall *pfnaGetDllVersionA)(int nShowMessage);
+final aGetDllVersionA = _dll.lookupFunction<Int64 Function(Int64 nShowMessage),
     int Function(int nShowMessage)>('A_Get_DLL_VersionA');
 // *******************************************************************************
 // A_Get_Graphic()
@@ -675,18 +673,18 @@ final A_Get_Graphic = _dll.lookupFunction<
   Pointer<Utf8> filename,
 )>('A_Get_Graphic');
 // *******************************************************************************
-// A_Get_Graphic_ColorBMP()
-// A_Get_Graphic_ColorBMPEx()
-// A_Get_Graphic_ColorBMP_HBitmap()
+// aGetGraphicColorBmp()
+// aGetGraphicColorBmpEx()
+// aGetGraphicColorBmpHBitmap()
 // ===============================================================================
 // PURPOSE   To convert BMP image file to grayscale mode and store the graphics in
 //     the printer's RAM or flash memory.
 // SYNTAX
-//     int A_Get_Graphic_ColorBMP(int x, int y, int mem_mode, char format,
+//     int aGetGraphicColorBmp(int x, int y, int mem_mode, char format,
 //       LPCTSTR filename);
-//     int A_Get_Graphic_ColorBMPEx(int x, int y, int nWidth, int nHeight,
+//     int aGetGraphicColorBmpEx(int x, int y, int nWidth, int nHeight,
 //       int rotate, int mem_mode, char format, LPCTSTR id_name, LPCTSTR filename);
-//     int A_Get_Graphic_ColorBMP_HBitmap(int x, int y, int nWidth, int nHeight,
+//     int aGetGraphicColorBmpHBitmap(int x, int y, int nWidth, int nHeight,
 //       int rotate, int mem_mode, char format, LPCTSTR id_name, HBITMAP hbm);
 // PARAMETER
 //     x;
@@ -727,47 +725,55 @@ final A_Get_Graphic = _dll.lookupFunction<
 //     0 -> OK.
 //     Reference AW-Error.txt file.
 // EXAMPLE
-//     A_Get_Graphic_ColorBMP(30, 20, 1, 'B', "bb.bmp");
-//     A_Get_Graphic_ColorBMPEx(30, 20, 200, 150, 2, 1, 'B', "bb1", "bb.bmp");//180 angle.
+//     aGetGraphicColorBmp(30, 20, 1, 'B', "bb.bmp");
+//     aGetGraphicColorBmpEx(30, 20, 200, 150, 2, 1, 'B', "bb1", "bb.bmp");//180 angle.
 //     HANDLE himage = LoadImage(NULL,"bb.bmp",IMAGE_BITMAP,0,0,LR_LOADFROMFILE);
-//     A_Get_Graphic_ColorBMP_HBitmap(30, 20, 250, 80, 1, 1, 'B', "bb2", (HBITMAP)himage);//90 angle.
+//     aGetGraphicColorBmpHBitmap(30, 20, 250, 80, 1, 1, 'B', "bb2", (HBITMAP)himage);//90 angle.
 // REMARK  You may provide a color BMP image file of any bit map to the
-//     A_Get_Graphic_ColorBMP() function; it will automatically be converted to a
+//     aGetGraphicColorBmp() function; it will automatically be converted to a
 //     B&W grayscale image and sent to the printer for output.
-//     The A_Get_Graphic_ColorBMPEx() and A_Get_Graphic_ColorBMP_HBitmap() functions
+//     The aGetGraphicColorBmpEx() and aGetGraphicColorBmpHBitmap() functions
 //     can be used to carry out zoom in, zoom out and rotation functions. They take
 //     file names and GDI HBITMAP Handles as data sources.
-// typedef int   (_stdcall *pfnA_Get_Graphic_ColorBMP)(int x, int y, int mem_mode, char format,
+// typedef int   (_stdcall *pfnaGetGraphicColorBmp)(int x, int y, int mem_mode, char format,
 // 						 LPCTSTR filename);
-// typedef int   (_stdcall *pfnA_Get_Graphic_ColorBMPEx)(int x, int y, int nWidth, int nHeight,
+// typedef int   (_stdcall *pfnaGetGraphicColorBmpEx)(int x, int y, int nWidth, int nHeight,
 // 						 int rotate, int mem_mode,char format, LPCTSTR id_name, LPCTSTR filename);
-// typedef int   (_stdcall *pfnA_Get_Graphic_ColorBMP_HBitmap)(int x, int y, int nWidth, int nHeight,
+// typedef int   (_stdcall *pfnaGetGraphicColorBmpHBitmap)(int x, int y, int nWidth, int nHeight,
 // 						 int rotate, int mem_mode,char format, LPCTSTR id_name, HBITMAP hbm);
-final A_Get_Graphic_ColorBMP = _dll.lookupFunction<
+int aGetGraphicColorBmp(
+        int x, int y, int memMode, String format, String filename) =>
+    _aGetGraphicColorBmp(
+        x, y, memMode, format.toNativeUtf8(), filename.toNativeUtf8());
+final _aGetGraphicColorBmp = _dll.lookupFunction<
     Int64 Function(
   Int64 x,
   Int64 y,
-  Int64 mem_mode,
+  Int64 memMode,
   Pointer<Utf8> format,
   Pointer<Utf8> filename,
 ),
     int Function(
   int x,
   int y,
-  int mem_mode,
+  int memMode,
   Pointer<Utf8> format,
   Pointer<Utf8> filename,
 )>('A_Get_Graphic_ColorBMP');
-final A_Get_Graphic_ColorBMPEx = _dll.lookupFunction<
+int aGetGraphicColorBmpEx(int x, int y, int nWidth, int nHeight, int rotate,
+        int memCode, String format, String idName, String filename) =>
+    _aGetGraphicColorBmpEx(x, y, nWidth, nHeight, memCode, rotate,
+        format.toNativeUtf8(), idName.toNativeUtf8(), filename.toNativeUtf8());
+final _aGetGraphicColorBmpEx = _dll.lookupFunction<
     Int64 Function(
   Int64 x,
   Int64 y,
   Int64 nWidth,
   Int64 nHeight,
   Int64 rotate,
-  Int64 mem_code,
+  Int64 memCode,
   Pointer<Utf8> format,
-  Pointer<Utf8> id_name,
+  Pointer<Utf8> idName,
   Pointer<Utf8> filename,
 ),
     int Function(
@@ -776,21 +782,25 @@ final A_Get_Graphic_ColorBMPEx = _dll.lookupFunction<
   int nWidth,
   int nHeight,
   int rotate,
-  int mem_code,
+  int memCode,
   Pointer<Utf8> format,
-  Pointer<Utf8> id_name,
+  Pointer<Utf8> idName,
   Pointer<Utf8> filename,
 )>('A_Get_Graphic_ColorBMPEx');
-final A_Get_Graphic_ColorBMP_HBitmap = _dll.lookupFunction<
+int aGetGraphicColorBmpHBitmap(int x, int y, int nWidth, int nHeight,
+        int rotate, int memMode, String format, String idName, String hbm) =>
+    _aGetGraphicColorBmpHBitmap(x, y, nWidth, nHeight, rotate, memMode,
+        format.toNativeUtf8(), idName.toNativeUtf8(), hbm.toNativeUtf8());
+final _aGetGraphicColorBmpHBitmap = _dll.lookupFunction<
     Int64 Function(
   Int64 x,
   Int64 y,
   Int64 nWidth,
   Int64 nHeight,
   Int64 rotate,
-  Int64 mem_mode,
+  Int64 memMode,
   Pointer<Utf8> format,
-  Pointer<Utf8> id_name,
+  Pointer<Utf8> idName,
   Pointer<Utf8> hbm, //TODO: Needs to check functionallity for mapping HBITMAP
 ),
     int Function(
@@ -799,18 +809,18 @@ final A_Get_Graphic_ColorBMP_HBitmap = _dll.lookupFunction<
   int nWidth,
   int nHeight,
   int rotate,
-  int mem_mode,
+  int memMode,
   Pointer<Utf8> format,
-  Pointer<Utf8> id_name,
+  Pointer<Utf8> idName,
   Pointer<Utf8> hbm,
 )>('A_Get_Graphic_ColorBMP_HBitmap');
 // *******************************************************************************
-// A_Initial_Setting()
+// aInitialSetting()
 // ===============================================================================
 // PURPOSE   Perform the initial paprameter setting (send the command code into
 //       printer directly).
 // SYNTAX
-//     int A_Initial_Setting(int Type, LPCTSTR Source);
+//     int aInitialSetting(int Type, LPCTSTR Source);
 // PARAMETER
 //     Type;
 //       To choose type to input.
@@ -823,28 +833,30 @@ final A_Get_Graphic_ColorBMP_HBitmap = _dll.lookupFunction<
 //     Reference AW-Error.txt file.
 // EXAMPLE
 //     LPCTSTR aa = "122300001000200EXAMPLE\r\n";
-//     A_Initial_Setting(0, aa);
+//     aInitialSetting(0, aa);
 //       or
-//     A_Initial_Setting(1, "initfile.txt");
-// REMARK  The A_Initial_Setting function is prescored to send some commands
+//     aInitialSetting(1, "initfile.txt");
+// REMARK  The aInitialSetting function is prescored to send some commands
 //     defined by user. The function will send a string with some commands or
 //     a file. The command should be placed after the A_Create_Prn() function.
-// typedef int   (_stdcall *pfnA_Initial_Setting)(int Type, LPCTSTR Source);
-final A_Initial_Setting = _dll.lookupFunction<
+// typedef int   (_stdcall *pfnaInitialSetting)(int Type, LPCTSTR Source);
+int aInitialSetting(int type, String source) =>
+    _aInitialSetting(type, source.toNativeUtf8());
+final _aInitialSetting = _dll.lookupFunction<
     Int64 Function(Int64 type, Pointer<Utf8> source),
     int Function(int type, Pointer<Utf8> source)>('A_Initial_Setting');
 // *******************************************************************************
-// A_WriteData()
+// aWriteData()
 // ===============================================================================
 // PURPOSE   To output data immediately or send it to temporary area.
 // SYNTAX
-//     int A_WriteData(int IsImmediate, LPCTSTR pbuf, DWORD length);
+//     int aWriteData(int IsImmediate, LPCTSTR pbuf, DWORD length);
 // PARAMETER
 //     IsImmediate;
 //       1 that the data should be sent immediately, and only the data in pbuf should
 //       be sent to the output port;
 //       0 that the data is to be stored to the temporary area and will only be sent
-//       when A_Print_Out() is called.
+//       when aPrintOut() is called.
 //     pbuf;
 //       The data pointer to be sent.
 //     length;
@@ -855,12 +867,14 @@ final A_Initial_Setting = _dll.lookupFunction<
 // EXAMPLE
 //     const char sznop1[] = "nop_front\r\n";
 //     const char sznop2[] = "nop_middle\r\n";
-//     A_WriteData(0, sznop2, (DWORD)strlen(sznop2));
-//     A_WriteData(1, sznop1, (DWORD)strlen(sznop1));
+//     aWriteData(0, sznop2, (DWORD)strlen(sznop2));
+//     aWriteData(1, sznop1, (DWORD)strlen(sznop1));
 // REMARK  Any controls, commands or data that you wish to send to the printer can
 //     be sent via this function.
-// typedef int   (_stdcall *pfnA_WriteData)(int IsImmediate, LPCTSTR pbuf, DWORD length);
-final A_WriteData = _dll.lookupFunction<
+// typedef int   (_stdcall *pfnaWriteData)(int IsImmediate, LPCTSTR pbuf, DWORD length);
+int aWriteData(int isImmediate, String pbuf, int length) =>
+    _aWriteData(isImmediate, pbuf.toNativeUtf8(), length);
+final _aWriteData = _dll.lookupFunction<
     Int64 Function(
   Int64 isImmediate,
   Pointer<Utf8> pbuf,
@@ -872,11 +886,11 @@ final A_WriteData = _dll.lookupFunction<
   int length,
 )>('A_WriteData');
 // *******************************************************************************
-// A_ReadData()
+// aReadData()
 // ===============================================================================
 // PURPOSE   To retrieve data from the printer.
 // SYNTAX
-//     int A_ReadData(LPTSTR pbuf, DWORD length, DWORD dwTimeoutms);
+//     int aReadData(LPTSTR pbuf, DWORD length, DWORD dwTimeoutms);
 // PARAMETER
 //     pbuf;
 //       Contains the pointer to the returned data. If it is a null pointer,
@@ -890,14 +904,16 @@ final A_WriteData = _dll.lookupFunction<
 // EXAMPLE
 //     int ret;
 //     char temp[10]={0};
-//     A_WriteData(1, "\x01\x46\r\n", 4);//<SOH>F
-//     ret = A_ReadData(temp, 2, 1000);//1 second.
+//     aWriteData(1, "\x01\x46\r\n", 4);//<SOH>F
+//     ret = aReadData(temp, 2, 1000);//1 second.
 // REMARK  This function is used to read the data returned from the printer, so
 //     please check to see if the communication port being used has the ability to
-//     return data. Use this function in conjunction with the A_WriteData() function
+//     return data. Use this function in conjunction with the aWriteData() function
 //     and refer to the ��Argox programmer's manual�� for additional information.
-// typedef int   (_stdcall *pfnA_ReadData)(LPTSTR pbuf, DWORD length, DWORD dwTimeoutms);
-final A_ReadData = _dll.lookupFunction<
+// typedef int   (_stdcall *pfnaReadData)(LPTSTR pbuf, DWORD length, DWORD dwTimeoutms);
+int aReadData(String pbuf, int length, int dwTimeoutms) =>
+    _aReadData(pbuf.toNativeUtf8(), length, dwTimeoutms);
+final _aReadData = _dll.lookupFunction<
     Int64 Function(
   Pointer<Utf8> pbuf,
   Uint32 length,
@@ -977,7 +993,7 @@ final A_Open_ChineseFont = _dll.lookupFunction<Int64 Function(Pointer<Utf8>),
 //     A_Print_Form(1, 1, 1, 1, "demo");
 // REMARK  The A_Print_Form function access data of all commands in the form.
 //     First used A_set_form() to store a form in printer. The command have to
-//     be placed after all commands. Befor A_ClosePrn(). The width and height
+//     be placed after all commands. Befor aClosePrn(). The width and height
 //     parameter is setting width and height pixel size. You can set the pixel
 //     size except the smallest one by this function. Reducing the resolution
 //     will causes the image pixel to be amplified and generate zigzag output
@@ -1002,11 +1018,11 @@ final A_Print_Form = _dll.lookupFunction<
   Pointer<Utf8> form_name,
 )>('A_Print_Form');
 // *******************************************************************************
-// A_Print_Out()
+// aPrintOut()
 // ===============================================================================
 // PURPOSE   Perform printing function.
 // SYNTAX
-//     int A_Print_Out(int width, int height, int copies, int amount);
+//     int aPrintOut(int width, int height, int copies, int amount);
 // PARAMETER
 //     width;
 //       Width - 1 or 2.
@@ -1021,25 +1037,25 @@ final A_Print_Form = _dll.lookupFunction<
 //     0 -> OK.
 //     Reference AW-Error.txt file.
 // EXAMPLE
-//     A_Print_Out(1, 1, 3, 1);
-// REMARK  The A_Print_Out function access data of all commands. This command has
-//     to be placed after all function and before A_ClosePrn().The width and
+//     aPrintOut(1, 1, 3, 1);
+// REMARK  The aPrintOut function access data of all commands. This command has
+//     to be placed after all function and before aClosePrn().The width and
 //     height parameter is setting width and height pixel size. You can set
 //     the pixel size except the smallest one by this function. Reducing the
 //     resolution will causes the image pixel to be amplified and generate the
 //     zigzag output. The amount parameter can be used to incrementing or
 //     decrementing field values more than one label which can be set only
 //     once during label formatting mode.
-// typedef int   (_stdcall *pfnA_Print_Out)(int width, int height, int copies, int amount);
-final A_Print_Out = _dll.lookupFunction<
+// typedef int   (_stdcall *pfnaPrintOut)(int width, int height, int copies, int amount);
+final aPrintOut = _dll.lookupFunction<
     Int64 Function(Int64 width, Int64 height, Int64 copies, Int64 amount),
     int Function(int width, int height, int copies, int amount)>('A_Print_Out');
 // *******************************************************************************
-// A_Prn_Barcode()
+// aPrnBarcode()
 // ===============================================================================
 // PURPOSE   Create a "barcode" object.
 // SYNTAX
-//     int A_Prn_Barcode(int x, int y, int ori, char type, int narrow, int width,
+//     int aPrnBarcode(int x, int y, int ori, char type, int narrow, int width,
 //       int height, char mode, int numeric, LPTSTR data);
 // PARAMETER
 //     x;
@@ -1159,11 +1175,15 @@ final A_Print_Out = _dll.lookupFunction<
 //     0 -> OK.
 //     Reference AW-Error.txt file.
 // EXAMPLE
-//     A_Prn_Barcode(150, 20, 4, 'A', 0, 0, 20, 'B', 1, "ABCD");
-// REMARK  The A_Prn_Barcode function can print a special Barcode�C
-// typedef int   (_stdcall *pfnA_Prn_Barcode)(int x, int y, int ori, char type, int narrow, int width,
+//     aPrnBarcode(150, 20, 4, 'A', 0, 0, 20, 'B', 1, "ABCD");
+// REMARK  The aPrnBarcode function can print a special Barcode�C
+// typedef int   (_stdcall *pfnaPrnBarcode)(int x, int y, int ori, char type, int narrow, int width,
 // 						 int height, char mode, int numeric, LPTSTR data);
-final A_Prn_Barcode = _dll.lookupFunction<
+int aPrnBarcode(int x, int y, int ori, String type, int narrow, int width,
+        int height, String mode, int numeric, String data) =>
+    _aPrnBarcode(x, y, ori, type.toNativeUtf8(), narrow, width, height,
+        mode.toNativeUtf8(), numeric, data.toNativeUtf8());
+final _aPrnBarcode = _dll.lookupFunction<
     Int64 Function(
   Int64 x,
   Int64 y,
@@ -1189,11 +1209,11 @@ final A_Prn_Barcode = _dll.lookupFunction<
   Pointer<Utf8> data,
 )>('A_Prn_Barcode');
 // *******************************************************************************
-// A_Prn_Text()
+// aPrnText()
 // ===============================================================================
 // PURPOSE   Create a "text" object.
 // SYNTAX
-//     int A_Prn_Text(int x, int y, int ori, int font, int type, int hor_factor,
+//     int aPrnText(int x, int y, int ori, int font, int type, int hor_factor,
 //         int ver_factor, char mode, int numeric, LPCTSTR data);
 // PARAMETER
 //     x;
@@ -1263,19 +1283,23 @@ final A_Prn_Barcode = _dll.lookupFunction<
 //     0 -> OK.
 //     Reference AW-Error.txt file.
 // EXAMPLE
-//     A_Prn_Text(310, 35, 1, 9, 0, 1, 1, 'N', 2, "PPLA COMMAND");
-// REMARK  The A_Prn_Text function can print a line text.
-// typedef int   (_stdcall *pfnA_Prn_Text)(int x, int y, int ori, int font, int type, int hor_factor,
+//     aPrnText(310, 35, 1, 9, 0, 1, 1, 'N', 2, "PPLA COMMAND");
+// REMARK  The aPrnText function can print a line text.
+// typedef int   (_stdcall *pfnaPrnText)(int x, int y, int ori, int font, int type, int hor_factor,
 // 						 int ver_factor, char mode, int numeric, LPCTSTR data);
-final A_Prn_Text = _dll.lookupFunction<
+int aPrnText(int x, int y, int ori, int font, int type, int horFactor,
+        int verFactor, String mode, int numeric, String data) =>
+    _aPrnText(x, y, ori, font, type, horFactor, verFactor, mode.toNativeUtf8(),
+        numeric, data.toNativeUtf8());
+final _aPrnText = _dll.lookupFunction<
     Int64 Function(
   Int64 x,
   Int64 y,
   Int64 ori,
   Int64 font,
   Int64 type,
-  Int64 hor_factor,
-  Int64 ver_factor,
+  Int64 horFactor,
+  Int64 verFactor,
   Pointer<Utf8> mode,
   Int64 numeric,
   Pointer<Utf8> data,
@@ -1286,8 +1310,8 @@ final A_Prn_Text = _dll.lookupFunction<
   int ori,
   int font,
   int type,
-  int hor_factor,
-  int ver_factor,
+  int horFactor,
+  int verFactor,
   Pointer<Utf8> mode,
   int numeric,
   Pointer<Utf8> data,
@@ -1339,64 +1363,64 @@ final A_Prn_Text_Chinese = _dll.lookupFunction<
   int mem_mode,
 )>('A_Prn_Text_Chinese');
 // *******************************************************************************
-// A_Prn_Text_TrueType()
-// A_Prn_Text_TrueType_W()
-// A_Prn_Text_TrueType_Uni()
-// A_Prn_Text_TrueType_UniB()
+// aPrnTextTrueType()
+// aPrnTextTrueTypeW()
+// aPrnTextTrueTypeUni()
+// aPrnTextTrueTypeUniB()
 // ===============================================================================
 // PURPOSE   To print a line of text in TrueType font.
 // SYNTAX
 //   VC:
-//     int A_Prn_Text_TrueType(int x, int y, int FSize, LPCTSTR FType, int Fspin,
+//     int aPrnTextTrueType(int x, int y, int FSize, LPCTSTR FType, int Fspin,
 //       int FWeight, int FItalic, int FUnline, int FStrikeOut, LPCTSTR id_name,
 //       LPCTSTR data, int mem_mode);
-//     int A_Prn_Text_TrueType_W(int x, int y, int FHeight, int FWidth, LPCTSTR FType,
+//     int aPrnTextTrueTypeW(int x, int y, int FHeight, int FWidth, LPCTSTR FType,
 //       int Fspin, int FWeight, int FItalic, int FUnline, int FStrikeOut,
 //       LPCTSTR id_name, LPCTSTR data, int mem_mode);
-//     int A_Prn_Text_TrueType_Uni(int x, int y, int FSize, LPCTSTR FType, int Fspin,
+//     int aPrnTextTrueTypeUni(int x, int y, int FSize, LPCTSTR FType, int Fspin,
 //       int FWeight, int FItalic, int FUnline, int FStrikeOut, LPCTSTR id_name,
 //       LPCWSTR data, int format, int mem_mode);
-//     int A_Prn_Text_TrueType_UniB(int x, int y, int FSize, LPCTSTR FType, int Fspin,
+//     int aPrnTextTrueTypeUniB(int x, int y, int FSize, LPCTSTR FType, int Fspin,
 //       int FWeight, int FItalic, int FUnline, int FStrikeOut, LPCTSTR id_name,
 //       LPCTSTR data, int format, int mem_mode);
 //   VB: VBA:
-//     Declare Function A_Prn_Text_TrueType(ByVal x As Long, ByVal y As Long, _
+//     Declare Function aPrnTextTrueType(ByVal x As Long, ByVal y As Long, _
 //       ByVal FSize As Long, ByVal FType As String, ByVal Fspin As Long, _
 //       ByVal FWeight As Long, ByVal FItalic As Long, ByVal FUnline As Long, _
 //       ByVal FStrikeOut As Long, ByVal id_name As String, ByVal data As String, _
 //       ByVal mem_mode As Long) As Long
-//     Declare Function A_Prn_Text_TrueType_W(ByVal x As Long, ByVal y As Long, _
+//     Declare Function aPrnTextTrueTypeW(ByVal x As Long, ByVal y As Long, _
 //       ByVal FHeight As Long, ByVal FWidth As Long, ByVal FType As String, _
 //       ByVal Fspin As Long, ByVal FWeight As Long, ByVal FItalic As Long, _
 //       ByVal FUnline As Long, ByVal FStrikeOut As Long, ByVal id_name As String, _
 //       ByVal data As String, ByVal mem_mode As Long) As Long
-//     Declare Function A_Prn_Text_TrueType_Uni(ByVal x As Long, ByVal y As Long, _
+//     Declare Function aPrnTextTrueTypeUni(ByVal x As Long, ByVal y As Long, _
 //       ByVal FSize As Long, ByVal FType As String, ByVal Fspin As Long, _
 //       ByVal FWeight As Long, ByVal FItalic As Long, ByVal FUnline As Long, _
 //       ByVal FStrikeOut As Long, ByVal id_name As String, ByRef data As Byte, _
 //       ByVal format As Long, ByVal mem_mode As Long) As Long
-//     Declare Function A_Prn_Text_TrueType_UniB(ByVal x As Long, ByVal y As Long, _
+//     Declare Function aPrnTextTrueTypeUniB(ByVal x As Long, ByVal y As Long, _
 //       ByVal FSize As Long, ByVal FType As String, ByVal Fspin As Long, _
 //       ByVal FWeight As Long, ByVal FItalic As Long, ByVal FUnline As Long, _
 //       ByVal FStrikeOut As Long, ByVal id_name As String, ByRef data As Byte, _
 //       ByVal format As Long, ByVal mem_mode As Long) As Long
 //   VB.net:
-//     Declare Function A_Prn_Text_TrueType(ByVal x As Integer, ByVal y As Integer, _
+//     Declare Function aPrnTextTrueType(ByVal x As Integer, ByVal y As Integer, _
 //       ByVal FSize As Integer, ByVal FType As String, ByVal Fspin As Integer, _
 //       ByVal FWeight As Integer, ByVal FItalic As Integer, ByVal FUnline As Integer, _
 //       ByVal FStrikeOut As Integer, ByVal id_name As String, ByVal data As String, _
 //       ByVal mem_mode As Integer) As Integer
-//     Declare Function A_Prn_Text_TrueType_W(ByVal x As Integer, ByVal y As Integer, _
+//     Declare Function aPrnTextTrueTypeW(ByVal x As Integer, ByVal y As Integer, _
 //       ByVal FHeight As Integer, ByVal FWidth As Integer, ByVal FType As String, _
 //       ByVal Fspin As Integer, ByVal FWeight As Integer, ByVal FItalic As Integer, _
 //       ByVal FUnline As Integer, ByVal FStrikeOut As Integer, ByVal id_name As String, _
 //       ByVal data As String, ByVal mem_mode As Integer) As Integer
-//     Declare Function A_Prn_Text_TrueType_Uni(ByVal x As Integer, ByVal y As Integer, _
+//     Declare Function aPrnTextTrueTypeUni(ByVal x As Integer, ByVal y As Integer, _
 //       ByVal FSize As Integer, ByVal FType As String, ByVal Fspin As Integer, _
 //       ByVal FWeight As Integer, ByVal FItalic As Integer, ByVal FUnline As Integer, _
 //       ByVal FStrikeOut As Integer, ByVal id_name As String, ByVal data As Byte(), _
 //       ByVal format As Integer, ByVal mem_mode As Integer) As Integer
-//     Declare Function A_Prn_Text_TrueType_UniB(ByVal x As Integer, ByVal y As Integer, _
+//     Declare Function aPrnTextTrueTypeUniB(ByVal x As Integer, ByVal y As Integer, _
 //       ByVal FSize As Integer, ByVal FType As String, ByVal Fspin As Integer, _
 //       ByVal FWeight As Integer, ByVal FItalic As Integer, ByVal FUnline As Integer, _
 //       ByVal FStrikeOut As Integer, ByVal id_name As String, ByVal data As Byte(), _
@@ -1434,7 +1458,7 @@ final A_Prn_Text_Chinese = _dll.lookupFunction<
 //       can be call out graphic directly via the A_Load_Graphic() function.
 //     data;
 //       Text content.
-//       For A_Prn_Text_TrueType_Uni() and A_Prn_Text_TrueType_UniB(), the encoding of input
+//       For aPrnTextTrueTypeUni() and aPrnTextTrueTypeUniB(), the encoding of input
 //       data string should be in UTF-8, UTF-16, or in Unicode big endian format; the string
 //       must be terminated with 0.
 //     format;
@@ -1453,23 +1477,23 @@ final A_Prn_Text_Chinese = _dll.lookupFunction<
 // EXAMPLE
 //   VC:
 //     char *ver, *pbuf = new char[128];
-//     A_Prn_Text_TrueType(20, 60, 30, "Arial", 1, 400, 0, 0, 0, "AA",
+//     aPrnTextTrueType(20, 60, 30, "Arial", 1, 400, 0, 0, 0, "AA",
 //       "TrueType Font", 1);//save in ram.
-//     A_Prn_Text_TrueType_W(20, 90, 20, 20, "Times New Roman", 1, 400, 0, 0, 0, "AB",
+//     aPrnTextTrueTypeW(20, 90, 20, 20, "Times New Roman", 1, 400, 0, 0, 0, "AB",
 //       "TT_W: �h�r������", 1);
-//     A_Prn_Text_TrueType_Uni(20, 120, 30, "Times New Roman", 1, 400, 0, 0, 0, "AC",
+//     aPrnTextTrueTypeUni(20, 120, 30, "Times New Roman", 1, 400, 0, 0, 0, "AC",
 //       L"TT_Uni: �h�r������", 1, 1);//UTF-16
 //     strcpy(pbuf, "\xFF\xFE");//UTF-16.
 //     memcpy(&pbuf[2], (char *)L"TT_UniB: �h�r������", 15*2);//copy mutil byte.
-//     A_Prn_Text_TrueType_UniB(20, 150, 30, "Times New Roman", 1, 400, 0, 0, 0, "AD",
+//     aPrnTextTrueTypeUniB(20, 150, 30, "Times New Roman", 1, 400, 0, 0, 0, "AD",
 //       pbuf, 0, 1);//Byte Order Mark.
 //   VB: VBA:
 //     Dim buff1(128) As Byte
 //     Dim buff2() As Byte
 //     Dim i As Integer
-//     Call A_Prn_Text_TrueType(20, 60, 30, "Arial", 1, 400, 0, 0, 0, "AA", _
+//     Call aPrnTextTrueType(20, 60, 30, "Arial", 1, 400, 0, 0, 0, "AA", _
 //       "TrueType Font", 1) 'save in ram.
-//     Call A_Prn_Text_TrueType_W(20, 90, 20, 20, "Times New Roman", 1, 400, 0, 0, 0, _
+//     Call aPrnTextTrueTypeW(20, 90, 20, 20, "Times New Roman", 1, 400, 0, 0, 0, _
 //       "AB", "TT_W: �h�r������", 1)
 //     buff2 = StrConv("TT_Uni: �h�r������", vbNarrow)
 //     'Converts UNICODE(wide characters) to single-byte characters.
@@ -1478,7 +1502,7 @@ final A_Prn_Text_Chinese = _dll.lookupFunction<
 //     Next i
 //     buff1(26) = 0 'null.
 //     buff1(27) = 0
-//     Call A_Prn_Text_TrueType_Uni(20, 120, 30, "Times New Roman", 1, 400, 0, 0, 0, _
+//     Call aPrnTextTrueTypeUni(20, 120, 30, "Times New Roman", 1, 400, 0, 0, 0, _
 //       "AC", buff1(0), 1, 1) 'UTF-16
 //     buff1(0) = 255 'UTF-16.
 //     buff1(1) = 254
@@ -1489,35 +1513,61 @@ final A_Prn_Text_Chinese = _dll.lookupFunction<
 //     Next i
 //     buff1(30) = 0 'null.
 //     buff1(31) = 0
-//     Call A_Prn_Text_TrueType_UniB(20, 150, 30, "Times New Roman", 1, 400, 0, 0, 0, _
+//     Call aPrnTextTrueTypeUniB(20, 150, 30, "Times New Roman", 1, 400, 0, 0, 0, _
 //       "AD", buff1(0), 0, 1) 'Byte Order Mark.
 //   VB.net:
 //     Dim pbuf(128) As Byte
 //     Dim encUnicode = System.Text.Encoding.Unicode
-//     Call A_Prn_Text_TrueType(20, 60, 30, "Arial", 1, 400, 0, 0, 0, "AA", _
+//     Call aPrnTextTrueType(20, 60, 30, "Arial", 1, 400, 0, 0, 0, "AA", _
 //       "TrueType Font", 1) 'save in ram.
-//     Call A_Prn_Text_TrueType_W(20, 90, 20, 20, "Times New Roman", 1, 400, 0, 0, 0, _
+//     Call aPrnTextTrueTypeW(20, 90, 20, 20, "Times New Roman", 1, 400, 0, 0, 0, _
 //       "AB", "TT_W: �h�r������", 1)
-//     Call A_Prn_Text_TrueType_Uni(20, 120, 30, "Times New Roman", 1, 400, 0, 0, 0, _
+//     Call aPrnTextTrueTypeUni(20, 120, 30, "Times New Roman", 1, 400, 0, 0, 0, _
 //       "AC", encUnicode.GetBytes("TT_Uni: �h�r������"), 1, 1) 'UTF-16
 //     pbuf(0) = 255 'UTF-16.
 //     pbuf(1) = 254
 //     encUnicode.GetBytes("TT_UniB: �h�r������", 0, 14, pbuf, 2) 'copy mutil byte.
 //     pbuf(30) = 0 'null.
 //     pbuf(31) = 0
-//     Call A_Prn_Text_TrueType_UniB(20, 150, 30, "Times New Roman", 1, 400, 0, 0, 0, _
+//     Call aPrnTextTrueTypeUniB(20, 150, 30, "Times New Roman", 1, 400, 0, 0, 0, _
 //       "AD", pbuf, 0, 1) 'Byte Order Mark
-// REMARK  The A_Prn_Text_TrueType() function prints a line of text in TrueType font.
-// typedef int   (_stdcall *pfnA_Prn_Text_TrueType)(int x, int y, int FSize, LPCTSTR FType, int Fspin,
+// REMARK  The aPrnTextTrueType() function prints a line of text in TrueType font.
+// typedef int   (_stdcall *pfnaPrnTextTrueType)(int x, int y, int FSize, LPCTSTR FType, int Fspin,
 // 						 int FWeight, int FItalic, int FUnline, int FStrikeOut, LPCTSTR id_name,
 // 						 LPCTSTR data, int mem_mode);
-// typedef int   (_stdcall *pfnA_Prn_Text_TrueType_Uni)(int x, int y, int FSize, LPCTSTR FType,
+// typedef int   (_stdcall *pfnaPrnTextTrueTypeUni)(int x, int y, int FSize, LPCTSTR FType,
 // 						 int Fspin, int FWeight, int FItalic, int FUnline, int FStrikeOut,
 // 						 LPCTSTR id_name, LPCWSTR data, int format, int mem_mode);
-// typedef int   (_stdcall *pfnA_Prn_Text_TrueType_W)(int x, int y, int FHeight, int FWidth,
+// typedef int   (_stdcall *pfnaPrnTextTrueTypeW)(int x, int y, int FHeight, int FWidth,
 // 						 LPCTSTR FType, int Fspin, int FWeight, int FItalic, int FUnline,
 // 						 int FStrikeOut, LPCTSTR id_name, LPCTSTR data, int mem_mode);
-final A_Prn_Text_TrueType = _dll.lookupFunction<
+int aPrnTextTrueType(
+        int x,
+        int y,
+        int fSize,
+        String fType,
+        int fSpin,
+        int fWeight,
+        int fItalic,
+        int fUnline,
+        int fStrikeOut,
+        String idName,
+        String data,
+        int memMode) =>
+    _aPrnTextTrueType(
+        x,
+        y,
+        fSize,
+        fType.toNativeUtf8(),
+        fSpin,
+        fWeight,
+        fItalic,
+        fUnline,
+        fStrikeOut,
+        idName.toNativeUtf8(),
+        data.toNativeUtf8(),
+        memMode);
+final _aPrnTextTrueType = _dll.lookupFunction<
     Int64 Function(
   Int64 x,
   Int64 y,
@@ -1546,7 +1596,35 @@ final A_Prn_Text_TrueType = _dll.lookupFunction<
   Pointer<Utf8> data,
   int mem_mode,
 )>('A_Prn_Text_TrueType');
-final A_Prn_Text_TrueType_W = _dll.lookupFunction<
+int aPrnTextTrueTypeW(
+        int x,
+        int y,
+        int fHeight,
+        int fWidth,
+        String fType,
+        int fSpin,
+        int fWeight,
+        int fItalic,
+        int fUnline,
+        int fStrikeOut,
+        String idName,
+        String data,
+        int memMode) =>
+    _aPrnTextTrueTypeW(
+        x,
+        y,
+        fHeight,
+        fWidth,
+        fType.toNativeUtf8(),
+        fSpin,
+        fWeight,
+        fItalic,
+        fUnline,
+        fStrikeOut,
+        idName.toNativeUtf8(),
+        data.toNativeUtf8(),
+        memMode);
+final _aPrnTextTrueTypeW = _dll.lookupFunction<
     Int64 Function(
   Int64 x,
   Int64 y,
@@ -1577,7 +1655,35 @@ final A_Prn_Text_TrueType_W = _dll.lookupFunction<
   Pointer<Utf8> data,
   int memMode,
 )>('A_Prn_Text_TrueType_W');
-final A_Prn_Text_TrueType_Uni = _dll.lookupFunction<
+int aPrnTextTrueTypeUni(
+        int x,
+        int y,
+        int fSize,
+        String fType,
+        int fSpin,
+        int fWeight,
+        int fItalic,
+        int fUnline,
+        int fStrikeOut,
+        String idName,
+        String data,
+        int format,
+        int memMode) =>
+    _aPrnTextTrueTypeUni(
+        x,
+        y,
+        fSize,
+        fType.toNativeUtf8(),
+        fSpin,
+        fWeight,
+        fItalic,
+        fUnline,
+        fStrikeOut,
+        idName.toNativeUtf8(),
+        data.toNativeUtf8(),
+        format,
+        memMode);
+final _aPrnTextTrueTypeUni = _dll.lookupFunction<
     Int64 Function(
   Int64 x,
   Int64 y,
@@ -1588,10 +1694,10 @@ final A_Prn_Text_TrueType_Uni = _dll.lookupFunction<
   Int64 fItalic,
   Int64 fUnline,
   Int64 fStrikeOut,
-  Pointer<Utf8> id_name,
+  Pointer<Utf8> idName,
   Pointer<Utf8> data,
   Int64 format,
-  Int64 mem_mode,
+  Int64 memMode,
 ),
     int Function(
   int x,
@@ -1608,10 +1714,38 @@ final A_Prn_Text_TrueType_Uni = _dll.lookupFunction<
   int format,
   int mem_mode,
 )>('A_Prn_Text_TrueType_Uni');
-// typedef int   (_stdcall *pfnA_Prn_Text_TrueType_UniB)(int x, int y, int FSize, LPCTSTR FType,
+// typedef int   (_stdcall *pfnaPrnTextTrueTypeUniB)(int x, int y, int FSize, LPCTSTR FType,
 // 						 int Fspin, int FWeight, int FItalic, int FUnline, int FStrikeOut,
 // 						 LPCTSTR id_name, LPCTSTR data, int format, int mem_mode);
-final A_Prn_Text_TrueType_UniB = _dll.lookupFunction<
+int aPrnTextTrueTypeUniB(
+        int x,
+        int y,
+        int fSize,
+        String fType,
+        int fSpin,
+        int fWeight,
+        int fItalic,
+        int fUnline,
+        int fStrikeOut,
+        String idName,
+        String data,
+        int format,
+        int memMode) =>
+    _aPrnTextTrueTypeUniB(
+        x,
+        y,
+        fSize,
+        fType.toNativeUtf8(),
+        fSpin,
+        fWeight,
+        fItalic,
+        fUnline,
+        fStrikeOut,
+        idName.toNativeUtf8(),
+        data.toNativeUtf8(),
+        format,
+        memMode);
+final _aPrnTextTrueTypeUniB = _dll.lookupFunction<
     Int64 Function(
   Int64 x,
   Int64 y,
@@ -1622,10 +1756,10 @@ final A_Prn_Text_TrueType_UniB = _dll.lookupFunction<
   Int64 fItalic,
   Int64 fUnline,
   Int64 fStrikeOut,
-  Pointer<Utf8> id_name,
+  Pointer<Utf8> idName,
   Pointer<Utf8> data,
   Int64 format,
-  Int64 mem_mode,
+  Int64 memMode,
 ),
     int Function(
   int x,
@@ -1637,22 +1771,17 @@ final A_Prn_Text_TrueType_UniB = _dll.lookupFunction<
   int fItalic,
   int fUnline,
   int fStrikeOut,
-  Pointer<Utf8> id_name,
+  Pointer<Utf8> idName,
   Pointer<Utf8> data,
   int format,
-  int mem_mode,
+  int memMode,
 )>('A_Prn_Text_TrueType_UniB');
 // *******************************************************************************
-// A_Set_Backfeed()
+// aSetBackfeed()
 // ===============================================================================
 // PURPOSE   Setup the "back feed" function.
 // SYNTAX
-//   VC:
-//     int A_Set_Backfeed(int back);
-//   VB: VBA:
-//     Declare Function A_Set_Backfeed(ByVal back As Long) As Long
-//   VB.net:
-//     Declare Function A_Set_Backfeed(ByVal back As Integer) As Integer
+//     int aSetBackfeed(int back);
 // PARAMETER
 //     back;
 //       Stop position. Value:220 ~ 999. The default is 220 in the printer.
@@ -1661,32 +1790,22 @@ final A_Prn_Text_TrueType_UniB = _dll.lookupFunction<
 //     0 -> OK.
 //     Reference AW-Error.txt file.
 // EXAMPLE
-//   VC:
-//     A_Set_Backfeed(320);
-//   VB: VBA: VB.net:
-//     Call A_Set_Backfeed(320)
-// REMARK  The A_Set_Backfeed() function enables the label to be fed a little bit
+//     aSetBackfeed(320);
+// REMARK  The aSetBackfeed() function enables the label to be fed a little bit
 //     ahead after printing which user could tear it off easily. And the label
 //     roll will be withdraw to proper position before the next label printed.
 //     Back-feed will not be activated if the value less than 220. Under
 //     multi-copy or countinuous printing, this command is vaild only for the
 //     first label.
-final A_Set_Backfeed =
+final aSetBackfeed =
     _dll.lookupFunction<Int64 Function(Int64 back), int Function(int back)>(
         'A_Set_Backfeed');
 // *******************************************************************************
-// A_Set_BMPSave()
+// aSetBmpSave()
 // ===============================================================================
 // PURPOSE   Save Image File.
 // SYNTAX
-//   VC:
-//     int A_Set_BMPSave(int nSave, char *pstrBMPFName);
-//   VB: VBA:
-//     Declare Function A_Set_BMPSave(ByVal nSave As Long, _
-//       ByVal pstrBMPFName As String) As Long
-//   VB.net:
-//     Declare Function A_Set_BMPSave(ByVal nSave As Integer, _
-//       ByVal pstrBMPFName As String) As Integer
+//     int aSetBmpSave(int nSave, char *pstrBMPFName);
 // PARAMETER
 //     nSave;
 //       1 -> Save Image. 0 -> Don't Save Image.
@@ -1696,12 +1815,11 @@ final A_Set_Backfeed =
 //     0 -> OK.
 //     Reference AW-Error.txt file.
 // EXAMPLE
-//   VC:
-//     A_Set_BMPSave(1, "C:\\TempBMP.bmp");
-//   VB: VBA: VB.net:
-//     Call A_Set_BMPSave(1, "C:\\TempBMP.bmp")
-// REMARK  The A_Set_BMPSave function can decide to save image to file.
-final A_Set_BMPSave = _dll.lookupFunction<
+//     aSetBmpSave(1, "C:\\TempBMP.bmp");
+// REMARK  The aSetBmpSave function can decide to save image to file.
+int aSetBmpSave(int nSave, String pstrBmpFName) =>
+    _aSetBmpSave(nSave, pstrBmpFName.toNativeUtf8());
+final _aSetBmpSave = _dll.lookupFunction<
     Int64 Function(Int64 nSave, Pointer<Utf8> pstrBmpFName),
     int Function(
   int nSave,
@@ -1734,16 +1852,11 @@ final A_Set_BMPSave = _dll.lookupFunction<
 final A_Set_Cutting = _dll.lookupFunction<Int64 Function(Int64 cutting),
     int Function(int cutting)>('A_Set_Cutting');
 // *******************************************************************************
-// A_Set_Darkness();
+// aSetDarkness();
 // ===============================================================================
 // PURPOSE   Setup the "darkness" function (heating level).
 // SYNTAX
-//   VC:
-//     int A_Set_Darkness(int heat);
-//   VB: VBA:
-//     Declare Function A_Set_Darkness(ByVal darkness As Long) As Long
-//   VB.net:
-//     Declare Function A_Set_Darkness(ByVal darkness As Integer) As Integer
+//     int aSetDarkness(int heat);
 // PARAMETER
 //     heat;
 //       Set heat value(0 ~ 20). Default value 10.
@@ -1751,27 +1864,24 @@ final A_Set_Cutting = _dll.lookupFunction<Int64 Function(Int64 cutting),
 //     0 -> OK.
 //     Reference AW-Error.txt file.
 // EXAMPLE
-//   VC:
-//     A_Set_Darkness(12);
-//   VB: VBA: VB.net:
-//     Call A_Set_Darkness(12)
+//     aSetDarkness(12);
 // REMARK  Heat value will define the image's darkness. To get a printout with
 //     better quality, you should consider following factors i.e. media material,
 //     ribbon types(wax,semi-resin and resin) and image pattern itself.
-final A_Set_Darkness =
+final aSetDarkness =
     _dll.lookupFunction<Int64 Function(Int64 heat), int Function(int heat)>(
         'A_Set_Darkness');
 // *******************************************************************************
-// A_Set_DebugDialog()
+// aSetDebugDialog()
 // ===============================================================================
 // PURPOSE   Enable Debug Message Dialog.
 // SYNTAX
 //   VC:
-//     int A_Set_DebugDialog(int nEnable);
+//     int aSetDebugDialog(int nEnable);
 //   VB: VBA:
-//     Declare Function A_Set_DebugDialog(ByVal nEnable As Long) As Long
+//     Declare Function aSetDebugDialog(ByVal nEnable As Long) As Long
 //   VB:
-//     Declare Function A_Set_DebugDialog(ByVal nEnable As Integer) As Integer
+//     Declare Function aSetDebugDialog(ByVal nEnable As Integer) As Integer
 // PARAMETER
 //     nEnable;
 //       1 -> Enable. 0 -> Disable.
@@ -1780,11 +1890,11 @@ final A_Set_Darkness =
 //     Reference AW-Error.txt file.
 // EXAMPLE
 //   VC:
-//     A_Set_DebugDialog(1);
+//     aSetDebugDialog(1);
 //   VB: VBA: VB.net:
-//     Call A_Set_DebugDialog(1)
-// REMARK  The A_Set_DebugDialog function set debug message dialog.
-final A_Set_DebugDialog = _dll.lookupFunction<Int64 Function(Int64 nEnable),
+//     Call aSetDebugDialog(1)
+// REMARK  The aSetDebugDialog function set debug message dialog.
+final aSetDebugDialog = _dll.lookupFunction<Int64 Function(Int64 nEnable),
     int Function(int nEnable)>('A_Set_DebugDialog');
 // *******************************************************************************
 // A_Set_Feed()
@@ -1952,7 +2062,7 @@ final A_Set_Margin = _dll.lookupFunction<
 // REMARK  The fuction of A_Set_Prncomport is to setup the value of printer
 //     serial Port. For successful communication between PC and Printer, this
 //     value should be commanded in accrodance with the setting value of PC.
-//     Besides, this command should be set before A_Print_Out() executed.
+//     Besides, this command should be set before aPrintOut() executed.
 // typedef int   (_stdcall *pfnA_Set_Prncomport)(int baud, int parity, int data, int stop);
 final A_Set_Prncomport = _dll.lookupFunction<
     Int64 Function(Int64 baud, Int64 parity, Int64 data, Int64 stop),
@@ -2022,7 +2132,7 @@ final A_Set_Prncomport = _dll.lookupFunction<
 // REMARK  The fuction of A_Set_Prncomport_PC is to setup the value of PC serial
 //     Port. For successful communication between PC and Printer, this value
 //     should be commanded in accrodance with the setting value of printer.
-//     Besides, this command should be set before A_Print_Out() executed.
+//     Besides, this command should be set before aPrintOut() executed.
 // typedef int   (_stdcall *pfnA_Set_Prncomport_PC)(int nBaudRate, int nByteSize, int nParity,
 // 						 int nStopBits, int nDsr, int nCts, int nXonXoff);
 final A_Set_Prncomport_PC = _dll.lookupFunction<
@@ -2130,18 +2240,18 @@ final A_Set_Sensor_Mode = _dll.lookupFunction<
 final A_Set_Speed = _dll.lookupFunction<Int64 Function(Pointer<Utf8> speed),
     int Function(Pointer<Utf8> speed)>('A_Set_Speed');
 // *******************************************************************************
-// A_Set_Syssetting()
+// aSetSysSetting()
 // ===============================================================================
 // PURPOSE   Other function setup e.g. printing type, cutter and dispenser
 //       configuration, label length, slash zero mark, pause function ....
 // SYNTAX
 //   VC:
-//     int A_Set_Syssetting(int transfer, int cut_peel, int length, int zero, int pause);
+//     int aSetSysSetting(int transfer, int cut_peel, int length, int zero, int pause);
 //   VB: VBA:
-//     Declare Function A_Set_Syssetting(ByVal transfer As Long, ByVal cut_peel As Long, _
+//     Declare Function aSetSysSetting(ByVal transfer As Long, ByVal cut_peel As Long, _
 //       ByVal Length As Long, ByVal zero As Long, ByVal pause As Long) As Long
 //   VB.net:
-//     Declare Function A_Set_Syssetting(ByVal transfer As Integer, _
+//     Declare Function aSetSysSetting(ByVal transfer As Integer, _
 //       ByVal cut_peel As Integer, ByVal Length As Integer, ByVal zero As Integer, _
 //       ByVal pause As Integer) As Integer
 // PARAMETER
@@ -2192,13 +2302,13 @@ final A_Set_Speed = _dll.lookupFunction<Int64 Function(Pointer<Utf8> speed),
 //     Reference AW-Error.txt file.
 // EXAMPLE
 //   VC:
-//     A_Set_Syssetting(2, 0, 1200, 1, 2);
+//     aSetSysSetting(2, 0, 1200, 1, 2);
 //   VB: VBA: VB.net:
-//     Call A_Set_Syssetting(2, 0, 1200, 1, 2)
-// REMARK  The A_Set_Syssetting function is importance for the configuration.
-// typedef int   (_stdcall *pfnA_Set_Syssetting)(int transfer, int cut_peel, int length, int zero,
+//     Call aSetSysSetting(2, 0, 1200, 1, 2)
+// REMARK  The aSetSysSetting function is importance for the configuration.
+// typedef int   (_stdcall *pfnaSetSysSetting)(int transfer, int cut_peel, int length, int zero,
 // 						 int pause);
-final A_Set_Syssetting = _dll.lookupFunction<
+final aSetSysSetting = _dll.lookupFunction<
     Int64 Function(
   Int64 transfer,
   Int64 cut_peel,
@@ -2214,16 +2324,16 @@ final A_Set_Syssetting = _dll.lookupFunction<
   int pause,
 )>('A_Set_Syssetting');
 // *******************************************************************************
-// A_Set_Unit()
+// aSetUnit()
 // ===============================================================================
 // PURPOSE   Setup measurement unit (metric or inches).
 // SYNTAX
 //   VC:
-//     int A_Set_Unit(char unit);
+//     int aSetUnit(char unit);
 //   VB: VBA:
-//     Declare Function A_Set_Unit(ByVal unit As Byte) As Long
+//     Declare Function aSetUnit(ByVal unit As Byte) As Long
 //   VB.net:
-//     Declare Function A_Set_Unit(ByVal unit As Byte) As Integer
+//     Declare Function aSetUnit(ByVal unit As Byte) As Integer
 // PARAMETER
 //     unit;
 //       The value of unit as follows:
@@ -2239,12 +2349,13 @@ final A_Set_Syssetting = _dll.lookupFunction<
 //     Reference AW-Error.txt file.
 // EXAMPLE
 //   VC:
-//     A_Set_Unit('n');
+//     aSetUnit('n');
 //   VB: VBA: VB.net:
-//     Call A_Set_Unit(Asc("n"))
-// REMARK  The A_Set_Unit function is used to set measurement in metric or inches.
-// typedef int   (_stdcall *pfnA_Set_Unit)(char unit);
-final A_Set_Unit = _dll.lookupFunction<Int64 Function(Pointer<Utf8> unit),
+//     Call aSetUnit(Asc("n"))
+// REMARK  The aSetUnit function is used to set measurement in metric or inches.
+// typedef int   (_stdcall *pfnaSetUnit)(char unit);
+int aSetUnit(String unit) => _aSetUnit(unit.toNativeUtf8());
+final _aSetUnit = _dll.lookupFunction<Int64 Function(Pointer<Utf8> unit),
     int Function(Pointer<Utf8> unit)>('A_Set_Unit');
 // *******************************************************************************
 // A_Set_Gap()
@@ -2378,7 +2489,7 @@ final A_Set_ErrorDlg =
 final A_Set_LabelVer = _dll.lookupFunction<Int64 Function(Int64 centiInch),
     int Function(int centiInch)>('A_Set_LabelVer');
 // *******************************************************************************
-// A_Clear_MemoryEx()
+// aClearMemoryEx()
 // ===============================================================================
 // PURPOSE   Clear resident memory - RAM or Flash memory.
 // PARAMETER
@@ -2387,76 +2498,77 @@ final A_Set_LabelVer = _dll.lookupFunction<Int64 Function(Int64 centiInch),
 //       1 --> RAM
 //       2 --> Flash
 // EXAMPLE
-//     A_Clear_MemoryEx(1);
-// REMARK  The A_Clear_MemoryEx function will clear all the graphics and soft fonts
+//     aClearMemoryEx(1);
+// REMARK  The aClearMemoryEx function will clear all the graphics and soft fonts
 //     which stored in the printers memory(RAM or flash memory). Normally
-//     this function is sent before the A_Print_Out(). Otherwise the graphics
+//     this function is sent before the aPrintOut(). Otherwise the graphics
 //     and fonts will be accumulated, and cause memory overflow. When "memory
 //     full" occurs, the printer will erase the first-in graphics or fonts.
 //     To avoid memory full and save processing time, you may send this
-//     function before the A_Print_Out().
-// typedef void  (_stdcall *pfnA_Clear_MemoryEx)(int nMode);
-final A_Clear_MemoryEx =
+//     function before the aPrintOut().
+// typedef void  (_stdcall *pfnaClearMemoryEx)(int nMode);
+final aClearMemoryEx =
     _dll.lookupFunction<Void Function(Int64 nMode), void Function(int nMode)>(
         'A_Clear_MemoryEx');
 // *******************************************************************************
-// A_GetUSBBufferLen()
-// A_EnumUSB()
+// aGetUsbBufferLen()
+// aEnumUsb()
 // ===============================================================================
 // PURPOSE   To retrieve the device name and data length of USB Printer.
 // PARAMETER
 //     buf;
 //       Stores USB Printer data.
 // RETURN
-//     A_GetUSBBufferLen();  returns the length of USB Printer data.
-//     A_EnumUSB();  0 -> OK.
+//     aGetUsbBufferLen();  returns the length of USB Printer data.
+//     aEnumUsb();  0 -> OK.
 //     Reference AW-Error.txt file.
 // Example
 //   VC:
 //     char *pbuf;
-//     int nLen = A_GetUSBBufferLen() + 1;
+//     int nLen = aGetUsbBufferLen() + 1;
 //     if (nLen > 1) {
 //       pbuf = (char *)new char[nLen];
-//       A_EnumUSB(pbuf);
+//       aEnumUsb(pbuf);
 //     }
 //   VB: VBA:
 //     Dim nLen As Long
 //     Dim pbuf As String
-//     nLen = A_GetUSBBufferLen() + 1
+//     nLen = aGetUsbBufferLen() + 1
 //     If nLen > 1 Then
 //       pbuf = Space(128)
-//       Call A_EnumUSB(pbuf)
+//       Call aEnumUsb(pbuf)
 //     End If
 //   VB.net:
 //     Dim nLen As Integer
 //     Dim pbuf(128) As Byte
-//     nLen = A_GetUSBBufferLen() + 1
+//     nLen = aGetUsbBufferLen() + 1
 //     If nLen > 1 Then
-//       Call A_EnumUSB(pbuf)
+//       Call aEnumUsb(pbuf)
 //     End If
 // REMARK  These two functions are designed to be used together. First, use
-//     A_GetUSBBufferLen() to retrieve the data length of the USB port. Then,
-//     allocate memory to A_EnumUSB() to store the USB port data. The data from
+//     aGetUsbBufferLen() to retrieve the data length of the USB port. Then,
+//     allocate memory to aEnumUsb() to store the USB port data. The data from
 //     USB port is split by ("0x0d0x0a"). For example, if the data is
 //     A-200(0x0d)(0x0a)R-400ZIP, then USB1 is connected to A-200 and USB2 is
 //     connected to R-400Zip.
-// typedef int   (_stdcall *pfnA_GetUSBBufferLen)(void);
-final A_GetUSBBufferLen =
+// typedef int   (_stdcall *pfnaGetUsbBufferLen)(void);
+final aGetUsbBufferLen =
     _dll.lookupFunction<Int64 Function(), int Function()>('A_GetUSBBufferLen');
-// typedef int   (_stdcall *pfnA_EnumUSB)(char *buf);
-final A_EnumUSB = _dll.lookupFunction<Int64 Function(Pointer<Utf8> buf),
+// typedef int   (_stdcall *pfnaEnumUsb)(char *buf);
+int aEnumUsb(String buf) => _aEnumUsb(buf.toNativeUtf8());
+final _aEnumUsb = _dll.lookupFunction<Int64 Function(Pointer<Utf8> buf),
     int Function(Pointer<Utf8> buf)>('A_EnumUSB');
 // *******************************************************************************
-// A_CreateUSBPort()
+// aCreateUsbPort()
 // A_CreateNetPort()
 // ===============================================================================
 // PURPOSE   Start PPLA Library opreation.
-//         Before using A_CreateUSBPort(), to call A_GetUSBBufferLen() first,
-//         This is for with A_EnumUSB() and A_GetUSBDeviceInfo() synchronization.
+//         Before using aCreateUsbPort(), to call aGetUsbBufferLen() first,
+//         This is for with aEnumUsb() and aGetUsbDeviceInfo() synchronization.
 //         Before using A_CreateNetPort(), to call A_GetNetPrinterBufferLen() first,
 //         This is for with A_EnumNetPrinter() synchronization.
 // SYNTAX
-//     int A_CreateUSBPort(int nPort);
+//     int aCreateUsbPort(int nPort);
 //     int A_CreateNetPort(int nPort);
 // PARAMETER
 //     nPort;
@@ -2466,21 +2578,21 @@ final A_EnumUSB = _dll.lookupFunction<Int64 Function(Pointer<Utf8> buf),
 //     Reference AW-Error.txt file.
 // EXAMPLE
 //     int nLen;
-//     nLen = A_GetUSBBufferLen();
+//     nLen = aGetUsbBufferLen();
 //     if (nLen) {
-//       A_CreateUSBPort(1);
+//       aCreateUsbPort(1);
 //     }
 //     nLen = A_GetNetPrinterBufferLen();
 //     if (nLen) {
 //       A_CreateNetPort(1);
 //     }
-// REMARK  The A_CreateUSBPort() and A_CreateNetPort() function
+// REMARK  The aCreateUsbPort() and A_CreateNetPort() function
 //     will activate a valid printer port or "print to file" path. This
 //     function must be performed before all commands.
-//     A_CreatePrn(), A_CreateUSBPort(), A_CreateNetPort() and A_CreatePort()
+//     aCreatePrn(), aCreateUsbPort(), A_CreateNetPort() and A_CreatePort()
 //     must use one of it at once.
-// typedef int   (_stdcall *pfnA_CreateUSBPort)(int nPort);
-final A_CreateUSBPort =
+// typedef int   (_stdcall *pfnaCreateUsbPort)(int nPort);
+final aCreateUsbPort =
     _dll.lookupFunction<Int64 Function(Int64 nPort), int Function(int nPort)>(
         'A_CreateUSBPort');
 // typedef int   (_stdcall *pfnA_CreateNetPort)(int nPort);
@@ -2519,7 +2631,7 @@ final A_CreateNetPort =
 //     A_CreatePort(5, 0, "192.168.1.3");
 // REMARK  The A_CreatePort() function will activate a valid printer port or
 //     "print to file" path. This function must be performed before all commands.
-//     A_CreatePrn(), A_CreateUSBPort(), A_CreateNetPort() and A_CreatePort()
+//     aCreatePrn(), aCreateUsbPort(), A_CreateNetPort() and A_CreatePort()
 //     must use one of it at once.
 // typedef int   (_stdcall *pfnA_CreatePort)(int nPortType, int nPort, LPCTSTR filename);
 final A_CreatePort = _dll.lookupFunction<
@@ -2631,13 +2743,13 @@ final A_Bar2d_RSS = _dll.lookupFunction<
 )>('A_Bar2d_RSS');
 // *******************************************************************************
 // A_Bar2d_QR_M()
-// A_Bar2d_QR_A()
+// aBar2dQrA()
 // ===============================================================================
 // PURPOSE   Create the 2D barcode object - QR code.
 // SYNTAX
 //     int A_Bar2d_QR_M(int x, int y, int ori, char mult, int value, int model,
 //       char error, int mask, char dinput, char mode, int numeric, LPCTSTR data);
-//     int A_Bar2d_QR_A(int x, int y, int ori, char mult, int value, char mode,
+//     int aBar2dQrA(int x, int y, int ori, char mult, int value, char mode,
 //       int numeric, LPCTSTR data);
 // PARAMETER
 //     x;
@@ -2702,8 +2814,8 @@ final A_Bar2d_RSS = _dll.lookupFunction<
 //     Reference AW-Error.txt file.
 // EXAMPLE
 //     A_Bar2d_QR_M(100, 100, 4, '6', 10, 2, 'M', 1, 'A', 'A', 4, "N123456");
-//     A_Bar2d_QR_A(100, 100, 4, '6', 10, 'A', 4, "123456");
-// REMARK  The A_Bar2d_QR_M and A_Bar2d_QR_A function are used to print QR barcode.
+//     aBar2dQrA(100, 100, 4, '6', 10, 'A', 4, "123456");
+// REMARK  The A_Bar2d_QR_M and aBar2dQrA function are used to print QR barcode.
 // typedef int   (_stdcall *pfnA_Bar2d_QR_M)(int x, int y, int ori, char mult, int value, int model,
 // 						 char error, int mask, char dinput, char mode, int numeric, LPCTSTR data);
 final A_Bar2d_QR_M = _dll.lookupFunction<
@@ -2735,9 +2847,13 @@ final A_Bar2d_QR_M = _dll.lookupFunction<
   int numeric,
   Pointer<Utf8> data,
 )>('A_Bar2d_QR_M');
-// typedef int   (_stdcall *pfnA_Bar2d_QR_A)(int x, int y, int ori, char mult, int value, char mode,
+// typedef int   (_stdcall *pfnaBar2dQrA)(int x, int y, int ori, char mult, int value, char mode,
 // 						 int numeric, LPCTSTR data);
-final A_Bar2d_QR_A = _dll.lookupFunction<
+int aBar2dQrA(int x, int y, int ori, String mult, int value, String mode,
+        int numeric, String data) =>
+    _aBar2dQrA(x, y, ori, mult.toNativeUtf8(), value, mode.toNativeUtf8(),
+        numeric, data.toNativeUtf8());
+final _aBar2dQrA = _dll.lookupFunction<
     Int64 Function(
   Int64 x,
   Int64 y,
@@ -2795,11 +2911,11 @@ final A_GetNetPrinterBufferLen =
 final A_EnumNetPrinter = _dll.lookupFunction<Int64 Function(Pointer<Utf8> buf),
     int Function(Pointer<Utf8> buf)>('A_EnumNetPrinter');
 // *******************************************************************************
-// A_GetUSBDeviceInfo()
+// aGetUsbDeviceInfo()
 // ===============================================================================
 // PURPOSE   To retrieve the device name and device path of USB Printer.
 // SYNTAX
-//     int A_GetUSBDeviceInfo(int nPort, char *pDeviceName, int *pDeviceNameLen,
+//     int aGetUsbDeviceInfo(int nPort, char *pDeviceName, int *pDeviceNameLen,
 //       char *pDevicePath, int *pDevicePathLen);
 // PARAMETER�G
 //     nPort;
@@ -2822,19 +2938,23 @@ final A_EnumNetPrinter = _dll.lookupFunction<Int64 Function(Pointer<Utf8> buf),
 // Example
 //     char buf1[128]={0}, buf2[128]={0};
 //     int nLen1=128, nLen2=128, nlen;
-//     nlen = A_GetUSBBufferLen() + 1;
+//     nlen = aGetUsbBufferLen() + 1;
 //     if (nlen > 1) {
-//       A_GetUSBDeviceInfo(1, buf1, &nLen1, buf2, &nLen2);
-//       A_CreatePrn(12, buf2); //or A_CreatePort(6, 0, buf2);
+//       aGetUsbDeviceInfo(1, buf1, &nLen1, buf2, &nLen2);
+//       aCreatePrn(12, buf2); //or A_CreatePort(6, 0, buf2);
 //     }
-// REMARK  This function first calls A_GetUSBBufferLen() to obtain the data length
-//     of the USB printer. Then A_GetUSBDeviceInfo() is called to retrieve relevant
+// REMARK  This function first calls aGetUsbBufferLen() to obtain the data length
+//     of the USB printer. Then aGetUsbDeviceInfo() is called to retrieve relevant
 //     information about the USB printer.
 //     The data stored in pDevicePath is the path of the USB device and can be used
-//     in A_CreatePrn() and A_CreatePort() to create the USB device.
-// typedef int   (_stdcall *pfnA_GetUSBDeviceInfo)(int nPort, char *pDeviceName, int *pDeviceNameLen,
+//     in aCreatePrn() and A_CreatePort() to create the USB device.
+// typedef int   (_stdcall *pfnaGetUsbDeviceInfo)(int nPort, char *pDeviceName, int *pDeviceNameLen,
 // 						 char *pDevicePath, int *pDevicePathLen);
-final A_GetUSBDeviceInfo = _dll.lookupFunction<
+int aGetUsbDeviceInfo(int nPort, String pDeviceName, int pDeviceNameLen,
+        String pDevicePath, int pDevicePathLen) =>
+    _aGetUsbDeviceInfo(nPort, pDeviceName.toNativeUtf8(), pDeviceNameLen,
+        pDevicePath.toNativeUtf8(), pDevicePathLen);
+final _aGetUsbDeviceInfo = _dll.lookupFunction<
     Int64 Function(
   Int64 nPort,
   Pointer<Utf8> pDeviceName,
@@ -2912,9 +3032,9 @@ final A_Check_EncryptationKey = _dll.lookupFunction<
 //       write timeout; unit : 1 ms. -1 is infinite.
 // EXAMPLE
 //     A_Set_CommTimeout(0, -1);
-//     A_CreatePrn(11, NULL); //USB
+//     aCreatePrn(11, NULL); //USB
 // REMARK  The fuction of A_Set_CommTimeout is to setting read/write timeout.
-//     If you want to use this command, this command should be set before A_CreatePrn() executed.
+//     If you want to use this command, this command should be set before aCreatePrn() executed.
 // typedef void  (_stdcall *pfnA_Set_CommTimeout)(int ReadTotalTimeoutConstant, int WriteTotalTimeoutConstant);
 final A_Set_CommTimeout = _dll.lookupFunction<
     Void Function(
@@ -2942,11 +3062,11 @@ final A_Get_CommTimeout = _dll.lookupFunction<
     void Function(int readTotalTimeoutConstant,
         int writeTotalTimeoutConstant)>('A_Get_CommTimeout');
 // *******************************************************************************
-// A_Set_LabelForSmartPrint()
+// aSetLabelForSmartPrint()
 // ===============================================================================
 // PURPOSE   Set the information needed for Smart Print.
 // SYNTAX
-//     int A_Set_LabelForSmartPrint(int lablength, int gaplength);
+//     int aSetLabelForSmartPrint(int lablength, int gaplength);
 // PARAMETER
 //     lablength;
 //       Label length. Unit : 0.1 mm.
@@ -2956,10 +3076,10 @@ final A_Get_CommTimeout = _dll.lookupFunction<
 //     0 -> OK.
 //     Reference AW-Error.txt file.
 // EXAMPLE
-//     A_Set_LabelForSmartPrint(762, 30);
-// REMARK  This A_Set_LabelForSmartPrint function is used to set
+//     aSetLabelForSmartPrint(762, 30);
+// REMARK  This aSetLabelForSmartPrint function is used to set
 //     the label length and GAP length information required for Smart Print.
-// typedef void  (_stdcall *pfnA_Set_LabelForSmartPrint)(int lablength, int gaplength);
-final A_Set_LabelForSmartPrint = _dll.lookupFunction<
+// typedef void  (_stdcall *pfnaSetLabelForSmartPrint)(int lablength, int gaplength);
+final aSetLabelForSmartPrint = _dll.lookupFunction<
     Void Function(Int64 lablength, Int64 gaplength),
     void Function(int lablength, int gaplength)>('A_Set_LabelFormSmartPrint');
