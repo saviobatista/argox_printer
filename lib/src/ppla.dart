@@ -10,6 +10,7 @@ import 'dart:ffi';
 import 'dart:io';
 import 'package:ffi/ffi.dart';
 import 'package:path/path.dart';
+import 'package:ffi/src/utf8.dart';
 
 //Internal helpers to load and configure library
 // String _red(String string) => '\x1B[31m$string\x1B[0m';
@@ -1181,32 +1182,40 @@ final aPrintOut = _dll.lookupFunction<
 // 						 int height, char mode, int numeric, LPTSTR data);
 int aPrnBarcode(int x, int y, int ori, String type, int narrow, int width,
         int height, String mode, int numeric, String data) =>
-    _aPrnBarcode(x, y, ori, type.toNativeUtf8(), narrow, width, height,
-        mode.toNativeUtf8(), numeric, data.toNativeUtf8());
+    _aPrnBarcode(
+        x,
+        y,
+        ori,
+        type.toNativeUtf8().cast<Int8>().value,
+        narrow,
+        width,
+        height,
+        mode.toNativeUtf8().cast<Int8>().value,
+        numeric,
+        data.toNativeUtf8().cast<Int8>());
 final _aPrnBarcode = _dll.lookupFunction<
-    Int64 Function(
-  Int64 x,
-  Int64 y,
-  Int64 ori,
-  Pointer<Utf8> type,
-  Int64 narrow,
-  Int64 width,
-  Int64 height,
-  Pointer<Utf8> mode,
-  Int64 numeric,
-  Pointer<Utf8> data,
-),
+    Int32 Function(
+        Int32 x,
+        Int32 y,
+        Int32 ori,
+        Int8 type,
+        Int32 narrow,
+        Int32 width,
+        Int32 height,
+        Int8 mode,
+        Int32 numeric,
+        Pointer<Int8> data),
     int Function(
   int x,
   int y,
   int ori,
-  Pointer<Utf8> type,
+  int type,
   int narrow,
   int width,
   int height,
-  Pointer<Utf8> mode,
+  int mode,
   int numeric,
-  Pointer<Utf8> data,
+  Pointer<Int8> data,
 )>('A_Prn_Barcode');
 // *******************************************************************************
 // aPrnText()
@@ -2328,12 +2337,7 @@ final aSetSysSetting = _dll.lookupFunction<
 // ===============================================================================
 // PURPOSE   Setup measurement unit (metric or inches).
 // SYNTAX
-//   VC:
 //     int aSetUnit(char unit);
-//   VB: VBA:
-//     Declare Function aSetUnit(ByVal unit As Byte) As Long
-//   VB.net:
-//     Declare Function aSetUnit(ByVal unit As Byte) As Integer
 // PARAMETER
 //     unit;
 //       The value of unit as follows:
@@ -2348,15 +2352,13 @@ final aSetSysSetting = _dll.lookupFunction<
 //     0 -> OK.
 //     Reference AW-Error.txt file.
 // EXAMPLE
-//   VC:
 //     aSetUnit('n');
-//   VB: VBA: VB.net:
-//     Call aSetUnit(Asc("n"))
 // REMARK  The aSetUnit function is used to set measurement in metric or inches.
 // typedef int   (_stdcall *pfnaSetUnit)(char unit);
-int aSetUnit(String unit) => _aSetUnit(unit.toNativeUtf8());
-final _aSetUnit = _dll.lookupFunction<Int64 Function(Pointer<Utf8> unit),
-    int Function(Pointer<Utf8> unit)>('A_Set_Unit');
+int aSetUnit(String unit) => _aSetUnit(unit.toNativeUtf8().cast<Int8>().value);
+final _aSetUnit =
+    _dll.lookupFunction<Int32 Function(Int8 unit), int Function(int unit)>(
+        'A_Set_Unit');
 // *******************************************************************************
 // A_Set_Gap()
 // ===============================================================================

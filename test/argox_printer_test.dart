@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:argox_printer/argox_printer.dart';
+import 'package:ffi/ffi.dart' as pkg_ffi;
+import 'dart:ffi' as ffi;
 
 void main() {
   test('All features test', () {
