@@ -92,7 +92,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       strmsg += " file succeed!";
                     }
                   }
-                  print(strmsg);
+                  //print(strmsg);
                   if (0 != ret) return;
 
                   // sample setting.
@@ -153,7 +153,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       context: context,
                       builder: (context) => AlertDialog(
                             title: const Text('If showed something, works!'),
-                            content: Text('DLL version: $version'),
+                            content:
+                                Text('DLL version: $version\r\nDebug:$strmsg'),
                           ));
                 },
                 icon: const Icon(Icons.print),

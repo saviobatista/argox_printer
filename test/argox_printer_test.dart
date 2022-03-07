@@ -57,7 +57,7 @@ void main() {
         strmsg += " file succeed!";
       }
     }
-    print(strmsg);
+    // print(strmsg);
     if (0 != ret) return;
 
     // sample setting.

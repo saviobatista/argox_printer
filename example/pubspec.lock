@@ -6,10 +6,10 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "82c2a104b7b7a2370e11369f530fa8cd536c353e"
+      resolved-ref: "07b089e19c70304b1bd2407c563028b275a082ea"
       url: "https://github.com/saviobatista/argox_printer.git"
     source: git
-    version: "0.0.2"
+    version: "0.0.4"
   async:
     dependency: transitive
     description:

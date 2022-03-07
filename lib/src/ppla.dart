@@ -3082,4 +3082,4 @@ final A_Get_CommTimeout = _dll.lookupFunction<
 // typedef void  (_stdcall *pfnaSetLabelForSmartPrint)(int lablength, int gaplength);
 final aSetLabelForSmartPrint = _dll.lookupFunction<
     Void Function(Int64 lablength, Int64 gaplength),
-    void Function(int lablength, int gaplength)>('A_Set_LabelFormSmartPrint');
+    void Function(int lablength, int gaplength)>('A_Set_LabelForSmartPrint');

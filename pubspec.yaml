@@ -1,7 +1,7 @@
 name: argox_printer
 description: FFI for Argox Printers using PPLA, PPLB, PPLZ
-version: 0.0.4
-homepage:
+version: 0.0.5
+repository: https://github.com/saviobatista/argox_printer
 
 environment:
   sdk: ">=2.16.1 <3.0.0"
