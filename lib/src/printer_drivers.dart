@@ -8,6 +8,20 @@ import 'dart:io';
 import 'dart:ffi' as ffi;
 import 'package:ffi/ffi.dart';
 
+/// Error handling
+class ArgoxException implements Exception {
+  final Map<int, String> errors = {
+    //TODO: List here all errors available from the library
+  };
+  final int code;
+  ArgoxException(this.code);
+
+  @override
+  String toString() => errors.keys.contains(code)
+      ? errors.entries.firstWhere((element) => element.key == code).value
+      : 'Unknown error';
+}
+
 abstract class ArgoxLibrary {}
 
 /// Interoperability between dart and argox printers
@@ -69,7 +83,7 @@ class ArgoxPPLA extends ArgoxLibrary {
     int service,
     int mode,
     int numeric,
-    ffi.Pointer<ffi.Int8> data,
+    String data,
   ) {
     return _A_Bar2d_Maxi(
       x,
@@ -80,7 +94,7 @@ class ArgoxPPLA extends ArgoxLibrary {
       service,
       mode,
       numeric,
-      data,
+      data.toNativeUtf8().cast<ffi.Int8>(),
     );
   }
 
@@ -110,7 +124,7 @@ class ArgoxPPLA extends ArgoxLibrary {
     int service,
     int mode,
     int numeric,
-    ffi.Pointer<ffi.Int8> data,
+    String data,
   ) {
     return _A_Bar2d_Maxi_Ori(
       x,
@@ -122,7 +136,7 @@ class ArgoxPPLA extends ArgoxLibrary {
       service,
       mode,
       numeric,
-      data,
+      data.toNativeUtf8().cast<ffi.Int8>(),
     );
   }
 
@@ -155,7 +169,7 @@ class ArgoxPPLA extends ArgoxLibrary {
     int column,
     int mode,
     int numeric,
-    ffi.Pointer<ffi.Int8> data,
+    String data,
   ) {
     return _A_Bar2d_PDF417(
       x,
@@ -169,7 +183,7 @@ class ArgoxPPLA extends ArgoxLibrary {
       column,
       mode,
       numeric,
-      data,
+      data.toNativeUtf8().cast<ffi.Int8>(),
     );
   }
 
@@ -205,7 +219,7 @@ class ArgoxPPLA extends ArgoxLibrary {
     int column,
     int mode,
     int numeric,
-    ffi.Pointer<ffi.Int8> data,
+    String data,
   ) {
     return _A_Bar2d_PDF417_Ori(
       x,
@@ -220,7 +234,7 @@ class ArgoxPPLA extends ArgoxLibrary {
       column,
       mode,
       numeric,
-      data,
+      data.toNativeUtf8().cast<ffi.Int8>(),
     );
   }
 
@@ -256,7 +270,7 @@ class ArgoxPPLA extends ArgoxLibrary {
     int num_col,
     int mode,
     int numeric,
-    ffi.Pointer<ffi.Int8> data,
+    String data,
   ) {
     return _A_Bar2d_DataMatrix(
       x,
@@ -270,7 +284,7 @@ class ArgoxPPLA extends ArgoxLibrary {
       num_col,
       mode,
       numeric,
-      data,
+      data.toNativeUtf8().cast<ffi.Int8>(),
     );
   }
 
@@ -293,6 +307,19 @@ class ArgoxPPLA extends ArgoxLibrary {
       int Function(int, int, int, int, int, int, int, int, int, int, int,
           ffi.Pointer<ffi.Int8>)>();
 
+  /// A_Clear_Memory()
+  /// PURPOSE   Clear Flash memory.
+  /// SYNTAX
+  ///     void A_Clear_Memory(void);
+  /// EXAMPLE
+  ///     A_Clear_Memory();
+  /// REMARK  The A_Clear_Memory function will clear all the graphics and soft fonts
+  ///     which stored in the printers flash memory. Normally
+  ///     this function is sent before the A_Print_Out(). Otherwise the graphics
+  ///     and fonts will be accumulated, and cause memory overflow. When "memory
+  ///     full" occurs, the printer will erase the first-in graphics or fonts.
+  ///     To avoid memory full and save processing time, you may send this
+  ///     function before the A_Print_Out().
   void A_Clear_Memory() {
     return _A_Clear_Memory();
   }
@@ -321,11 +348,11 @@ class ArgoxPPLA extends ArgoxLibrary {
 
   int A_CreatePrn(
     int selection,
-    ffi.Pointer<ffi.Int8> filename,
+    String filename,
   ) {
     return _A_CreatePrn(
       selection,
-      filename,
+      filename.toNativeUtf8().cast<ffi.Int8>(),
     );
   }
 
@@ -337,11 +364,11 @@ class ArgoxPPLA extends ArgoxLibrary {
 
   int A_Del_Graphic(
     int mem_mode,
-    ffi.Pointer<ffi.Int8> graphic,
+    String graphic,
   ) {
     return _A_Del_Graphic(
       mem_mode,
-      graphic,
+      graphic.toNativeUtf8().cast<ffi.Int8>(),
     );
   }
 
@@ -410,12 +437,12 @@ class ArgoxPPLA extends ArgoxLibrary {
       _lookup<ffi.NativeFunction<ffi.Void Function()>>('A_Feed_Label');
   late final _A_Feed_Label = _A_Feed_LabelPtr.asFunction<void Function()>();
 
-  ffi.Pointer<ffi.Int8> A_Get_DLL_Version(
+  String A_Get_DLL_Version(
     int nShowMessage,
   ) {
     return _A_Get_DLL_Version(
       nShowMessage,
-    );
+    ).cast<Utf8>().toDartString();
   }
 
   late final _A_Get_DLL_VersionPtr =
@@ -443,14 +470,14 @@ class ArgoxPPLA extends ArgoxLibrary {
     int y,
     int mem_mode,
     int format,
-    ffi.Pointer<ffi.Int8> filename,
+    String filename,
   ) {
     return _A_Get_Graphic(
       x,
       y,
       mem_mode,
       format,
-      filename,
+      filename.toNativeUtf8().cast<ffi.Int8>(),
     );
   }
 
@@ -466,14 +493,14 @@ class ArgoxPPLA extends ArgoxLibrary {
     int y,
     int mem_mode,
     int format,
-    ffi.Pointer<ffi.Int8> filename,
+    String filename,
   ) {
     return _A_Get_Graphic_ColorBMP(
       x,
       y,
       mem_mode,
       format,
-      filename,
+      filename.toNativeUtf8().cast<ffi.Int8>(),
     );
   }
 
@@ -492,8 +519,8 @@ class ArgoxPPLA extends ArgoxLibrary {
     int rotate,
     int mem_mode,
     int format,
-    ffi.Pointer<ffi.Int8> id_name,
-    ffi.Pointer<ffi.Int8> filename,
+    String id_name,
+    String filename,
   ) {
     return _A_Get_Graphic_ColorBMPEx(
       x,
@@ -503,8 +530,8 @@ class ArgoxPPLA extends ArgoxLibrary {
       rotate,
       mem_mode,
       format,
-      id_name,
-      filename,
+      id_name.toNativeUtf8().cast<ffi.Int8>(),
+      filename.toNativeUtf8().cast<ffi.Int8>(),
     );
   }
 
@@ -533,7 +560,7 @@ class ArgoxPPLA extends ArgoxLibrary {
     int rotate,
     int mem_mode,
     int format,
-    ffi.Pointer<ffi.Int8> id_name,
+    String id_name,
     int hbm,
   ) {
     return _A_Get_Graphic_ColorBMP_HBitmap(
@@ -544,7 +571,7 @@ class ArgoxPPLA extends ArgoxLibrary {
       rotate,
       mem_mode,
       format,
-      id_name,
+      id_name.toNativeUtf8().cast<ffi.Int8>(),
       hbm,
     );
   }
@@ -568,11 +595,11 @@ class ArgoxPPLA extends ArgoxLibrary {
 
   int A_Initial_Setting(
     int Type,
-    ffi.Pointer<ffi.Int8> Source,
+    String Source,
   ) {
     return _A_Initial_Setting(
       Type,
-      Source,
+      Source.toNativeUtf8().cast<ffi.Int8>(),
     );
   }
 
@@ -629,12 +656,12 @@ class ArgoxPPLA extends ArgoxLibrary {
       int Function(int, ffi.Pointer<ffi.Int8>, int)>();
 
   int A_ReadData(
-    ffi.Pointer<ffi.Int8> pbuf,
+    String pbuf,
     int length,
     int dwTimeoutms,
   ) {
     return _A_ReadData(
-      pbuf,
+      pbuf.toNativeUtf8().cast<ffi.Int8>(),
       length,
       dwTimeoutms,
     );
@@ -650,12 +677,12 @@ class ArgoxPPLA extends ArgoxLibrary {
   int A_Load_Graphic(
     int x,
     int y,
-    ffi.Pointer<ffi.Int8> graphic_name,
+    String graphic_name,
   ) {
     return _A_Load_Graphic(
       x,
       y,
-      graphic_name,
+      graphic_name.toNativeUtf8().cast<ffi.Int8>(),
     );
   }
 
@@ -667,10 +694,10 @@ class ArgoxPPLA extends ArgoxLibrary {
       int Function(int, int, ffi.Pointer<ffi.Int8>)>();
 
   int A_Open_ChineseFont(
-    ffi.Pointer<ffi.Int8> path,
+    String path,
   ) {
     return _A_Open_ChineseFont(
-      path,
+      path.toNativeUtf8().cast<ffi.Int8>(),
     );
   }
 
@@ -685,14 +712,14 @@ class ArgoxPPLA extends ArgoxLibrary {
     int height,
     int copies,
     int amount,
-    ffi.Pointer<ffi.Int8> form_name,
+    String form_name,
   ) {
     return _A_Print_Form(
       width,
       height,
       copies,
       amount,
-      form_name,
+      form_name.toNativeUtf8().cast<ffi.Int8>(),
     );
   }
 
@@ -703,12 +730,13 @@ class ArgoxPPLA extends ArgoxLibrary {
   late final _A_Print_Form = _A_Print_FormPtr.asFunction<
       int Function(int, int, int, int, ffi.Pointer<ffi.Int8>)>();
 
-  /// *******************************************************************************
   /// A_PrintOut()
-  /// ===============================================================================
+  ///
   /// PURPOSE   Perform printing function.
+  ///
   /// SYNTAX
   ///     int A_PrintOut(int width, int height, int copies, int amount);
+  ///
   /// PARAMETER
   ///     width;
   ///       Width - 1 or 2.
@@ -719,11 +747,14 @@ class ArgoxPPLA extends ArgoxLibrary {
   ///     amount;
   ///       Specifies the number of labels to be generated before incrementing/decrementing
   ///       the fields. Value:1 ~ 99.
+  ///
   /// RETURN
   ///     0 -> OK.
   ///     Reference AW-Error.txt file.
+  ///
   /// EXAMPLE
   ///     A_PrintOut(1, 1, 3, 1);
+  ///
   /// REMARK  The A_PrintOut function access data of all commands. This command has
   ///     to be placed after all function and before aClosePrn().The width and
   ///     height parameter is setting width and height pixel size. You can set
@@ -976,13 +1007,14 @@ class ArgoxPPLA extends ArgoxLibrary {
       int Function(int, int, int, int, int, int, int, int, int,
           ffi.Pointer<ffi.Int8>)>();
 
-  ///*******************************************************************************
   ///A_Prn_Text()
-  ///===============================================================================
+  ///
   ///PURPOSE   Create a "text" object.
+  ///
   ///SYNTAX
   ///    int A_Prn_Text(int x, int y, int ori, int font, int type, int hor_factor,
   ///        int ver_factor, char mode, int numeric, LPCTSTR data);
+  ///
   ///PARAMETER
   ///    x;
   ///      X coordinate.
@@ -1047,11 +1079,14 @@ class ArgoxPPLA extends ArgoxLibrary {
   ///      This field must exist When has add function.
   ///    data;
   ///      Data string.
+  ///
   ///RETURN
   ///    0 -> OK.
   ///    Reference AW-Error.txt file.
+  ///
   ///EXAMPLE
   ///    A_Prn_Text(310, 35, 1, 9, 0, 1, 1, 'N', 2, "PPLA COMMAND");
+  ///
   ///REMARK  The A_Prn_Text function can print a line text.
   int A_Prn_Text(
     int x,
@@ -1106,16 +1141,16 @@ class ArgoxPPLA extends ArgoxLibrary {
     int x,
     int y,
     int fonttype,
-    ffi.Pointer<ffi.Int8> id_name,
-    ffi.Pointer<ffi.Int8> data,
+    String id_name,
+    String data,
     int mem_mode,
   ) {
     return _A_Prn_Text_Chinese(
       x,
       y,
       fonttype,
-      id_name,
-      data,
+      id_name.toNativeUtf8().cast<ffi.Int8>(),
+      data.toNativeUtf8().cast<ffi.Int8>(),
       mem_mode,
     );
   }
@@ -1137,28 +1172,28 @@ class ArgoxPPLA extends ArgoxLibrary {
     int x,
     int y,
     int FSize,
-    ffi.Pointer<ffi.Int8> FType,
+    String FType,
     int Fspin,
     int FWeight,
     int FItalic,
     int FUnline,
     int FStrikeOut,
-    ffi.Pointer<ffi.Int8> id_name,
-    ffi.Pointer<ffi.Int8> data,
+    String id_name,
+    String data,
     int mem_mode,
   ) {
     return _A_Prn_Text_TrueType(
       x,
       y,
       FSize,
-      FType,
+      FType.toNativeUtf8().cast<ffi.Int8>(),
       Fspin,
       FWeight,
       FItalic,
       FUnline,
       FStrikeOut,
-      id_name,
-      data,
+      id_name.toNativeUtf8().cast<ffi.Int8>(),
+      data.toNativeUtf8().cast<ffi.Int8>(),
       mem_mode,
     );
   }
@@ -1187,14 +1222,14 @@ class ArgoxPPLA extends ArgoxLibrary {
     int y,
     int FHeight,
     int FWidth,
-    ffi.Pointer<ffi.Int8> FType,
+    String FType,
     int Fspin,
     int FWeight,
     int FItalic,
     int FUnline,
     int FStrikeOut,
-    ffi.Pointer<ffi.Int8> id_name,
-    ffi.Pointer<ffi.Int8> data,
+    String id_name,
+    String data,
     int mem_mode,
   ) {
     return _A_Prn_Text_TrueType_W(
@@ -1202,14 +1237,14 @@ class ArgoxPPLA extends ArgoxLibrary {
       y,
       FHeight,
       FWidth,
-      FType,
+      FType.toNativeUtf8().cast<ffi.Int8>(),
       Fspin,
       FWeight,
       FItalic,
       FUnline,
       FStrikeOut,
-      id_name,
-      data,
+      id_name.toNativeUtf8().cast<ffi.Int8>(),
+      data.toNativeUtf8().cast<ffi.Int8>(),
       mem_mode,
     );
   }
@@ -1250,11 +1285,11 @@ class ArgoxPPLA extends ArgoxLibrary {
 
   int A_Set_BMPSave(
     int nSave,
-    ffi.Pointer<ffi.Int8> pstrBMPFName,
+    String pstrBMPFName,
   ) {
     return _A_Set_BMPSave(
       nSave,
-      pstrBMPFName,
+      pstrBMPFName.toNativeUtf8().cast<ffi.Int8>(),
     );
   }
 
@@ -1353,13 +1388,13 @@ class ArgoxPPLA extends ArgoxLibrary {
   late final _A_Set_Feed = _A_Set_FeedPtr.asFunction<int Function(int)>();
 
   int A_Set_Form(
-    ffi.Pointer<ffi.Int8> formfile,
-    ffi.Pointer<ffi.Int8> form_name,
+    String formfile,
+    String form_name,
     int mem_mode,
   ) {
     return _A_Set_Form(
-      formfile,
-      form_name,
+      formfile.toNativeUtf8().cast<ffi.Int8>(),
+      form_name.toNativeUtf8().cast<ffi.Int8>(),
       mem_mode,
     );
   }
@@ -1597,12 +1632,17 @@ class ArgoxPPLA extends ArgoxLibrary {
   late final _A_GetUSBBufferLen =
       _A_GetUSBBufferLenPtr.asFunction<int Function()>();
 
-  int A_EnumUSB(
-    ffi.Pointer<ffi.Int8> buf,
-  ) {
-    return _A_EnumUSB(
-      buf,
+  String A_EnumUSB() {
+    final pbuf = calloc<ffi.Int8>(128);
+    final result = _A_EnumUSB(
+      pbuf,
     );
+    final ret = pbuf.cast<Utf8>().toDartString();
+    calloc.free(pbuf);
+    if (result != 0) {
+      throw ArgoxException(result);
+    }
+    return ret;
   }
 
   late final _A_EnumUSBPtr =
@@ -1628,12 +1668,12 @@ class ArgoxPPLA extends ArgoxLibrary {
   int A_CreatePort(
     int nPortType,
     int nPort,
-    ffi.Pointer<ffi.Int8> filename,
+    String filename,
   ) {
     return _A_CreatePort(
       nPortType,
       nPort,
-      filename,
+      filename.toNativeUtf8().cast<ffi.Int8>(),
     );
   }
 
@@ -1694,8 +1734,8 @@ class ArgoxPPLA extends ArgoxLibrary {
     int rtype,
     int mult,
     int seg,
-    ffi.Pointer<ffi.Int8> data1,
-    ffi.Pointer<ffi.Int8> data2,
+    String data1,
+    String data2,
   ) {
     return _A_Bar2d_RSS(
       x,
@@ -1706,8 +1746,8 @@ class ArgoxPPLA extends ArgoxLibrary {
       rtype,
       mult,
       seg,
-      data1,
-      data2,
+      data1.toNativeUtf8().cast<ffi.Int8>(),
+      data2.toNativeUtf8().cast<ffi.Int8>(),
     );
   }
 
@@ -1740,7 +1780,7 @@ class ArgoxPPLA extends ArgoxLibrary {
     int dinput,
     int mode,
     int numeric,
-    ffi.Pointer<ffi.Int8> data,
+    String data,
   ) {
     return _A_Bar2d_QR_M(
       x,
@@ -1754,7 +1794,7 @@ class ArgoxPPLA extends ArgoxLibrary {
       dinput,
       mode,
       numeric,
-      data,
+      data.toNativeUtf8().cast<ffi.Int8>(),
     );
   }
 
@@ -1785,7 +1825,7 @@ class ArgoxPPLA extends ArgoxLibrary {
     int value,
     int mode,
     int numeric,
-    ffi.Pointer<ffi.Int8> data,
+    String data,
   ) {
     return _A_Bar2d_QR_A(
       x,
@@ -1795,7 +1835,7 @@ class ArgoxPPLA extends ArgoxLibrary {
       value,
       mode,
       numeric,
-      data,
+      data.toNativeUtf8().cast<ffi.Int8>(),
     );
   }
 
@@ -1824,10 +1864,10 @@ class ArgoxPPLA extends ArgoxLibrary {
       _A_GetNetPrinterBufferLenPtr.asFunction<int Function()>();
 
   int A_EnumNetPrinter(
-    ffi.Pointer<ffi.Int8> buf,
+    String buf,
   ) {
     return _A_EnumNetPrinter(
-      buf,
+      buf.toNativeUtf8().cast<ffi.Int8>(),
     );
   }
 
@@ -1855,14 +1895,14 @@ class ArgoxPPLA extends ArgoxLibrary {
     int x,
     int y,
     int FSize,
-    ffi.Pointer<ffi.Int8> FType,
+    String FType,
     int Fspin,
     int FWeight,
     int FItalic,
     int FUnline,
     int FStrikeOut,
-    ffi.Pointer<ffi.Int8> id_name,
-    ffi.Pointer<ffi.Int8> data,
+    String id_name,
+    String data,
     int format,
     int mem_mode,
   ) {
@@ -1870,14 +1910,14 @@ class ArgoxPPLA extends ArgoxLibrary {
       x,
       y,
       FSize,
-      FType,
+      FType.toNativeUtf8().cast<ffi.Int8>(),
       Fspin,
       FWeight,
       FItalic,
       FUnline,
       FStrikeOut,
-      id_name,
-      data,
+      id_name.toNativeUtf8().cast<ffi.Int8>(),
+      data.toNativeUtf8().cast<ffi.Int8>(),
       format,
       mem_mode,
     );
@@ -1907,14 +1947,14 @@ class ArgoxPPLA extends ArgoxLibrary {
     int x,
     int y,
     int FSize,
-    ffi.Pointer<ffi.Int8> FType,
+    String FType,
     int Fspin,
     int FWeight,
     int FItalic,
     int FUnline,
     int FStrikeOut,
-    ffi.Pointer<ffi.Int8> id_name,
-    ffi.Pointer<ffi.Int8> data,
+    String id_name,
+    String data,
     int format,
     int mem_mode,
   ) {
@@ -1922,14 +1962,14 @@ class ArgoxPPLA extends ArgoxLibrary {
       x,
       y,
       FSize,
-      FType,
+      FType.toNativeUtf8().cast<ffi.Int8>(),
       Fspin,
       FWeight,
       FItalic,
       FUnline,
       FStrikeOut,
-      id_name,
-      data,
+      id_name.toNativeUtf8().cast<ffi.Int8>(),
+      data.toNativeUtf8().cast<ffi.Int8>(),
       format,
       mem_mode,
     );
@@ -1958,17 +1998,17 @@ class ArgoxPPLA extends ArgoxLibrary {
 
   int A_GetUSBDeviceInfo(
     int nPort,
-    ffi.Pointer<ffi.Int8> pDeviceName,
-    ffi.Pointer<ffi.Int32> pDeviceNameLen,
-    ffi.Pointer<ffi.Int8> pDevicePath,
-    ffi.Pointer<ffi.Int32> pDevicePathLen,
+    String pDeviceName,
+    int pDeviceNameLen,
+    String pDevicePath,
+    int pDevicePathLen,
   ) {
     return _A_GetUSBDeviceInfo(
       nPort,
-      pDeviceName,
-      pDeviceNameLen,
-      pDevicePath,
-      pDevicePathLen,
+      pDeviceName.toNativeUtf8().cast<ffi.Int8>(),
+      pDeviceNameLen.toString().toNativeUtf8().cast<ffi.Int32>(),
+      pDevicePath.toNativeUtf8().cast<ffi.Int8>(),
+      pDevicePathLen.toString().toNativeUtf8().cast<ffi.Int32>(),
     );
   }
 
@@ -1985,10 +2025,10 @@ class ArgoxPPLA extends ArgoxLibrary {
           ffi.Pointer<ffi.Int8>, ffi.Pointer<ffi.Int32>)>();
 
   int A_Set_EncryptionKey(
-    ffi.Pointer<ffi.Int8> encryptionKey,
+    String encryptionKey,
   ) {
     return _A_Set_EncryptionKey(
-      encryptionKey,
+      encryptionKey.toNativeUtf8().cast<ffi.Int8>(),
     );
   }
 
@@ -1999,13 +2039,13 @@ class ArgoxPPLA extends ArgoxLibrary {
       _A_Set_EncryptionKeyPtr.asFunction<int Function(ffi.Pointer<ffi.Int8>)>();
 
   int A_Check_EncryptionKey(
-    ffi.Pointer<ffi.Int8> decodeKey,
-    ffi.Pointer<ffi.Int8> encryptionKey,
+    String decodeKey,
+    String encryptionKey,
     int dwTimeoutms,
   ) {
     return _A_Check_EncryptionKey(
-      decodeKey,
-      encryptionKey,
+      decodeKey.toNativeUtf8().cast<ffi.Int8>(),
+      encryptionKey.toNativeUtf8().cast<ffi.Int8>(),
       dwTimeoutms,
     );
   }
@@ -2034,12 +2074,12 @@ class ArgoxPPLA extends ArgoxLibrary {
       _A_Set_CommTimeoutPtr.asFunction<void Function(int, int)>();
 
   void A_Get_CommTimeout(
-    ffi.Pointer<ffi.Int32> ReadTotalTimeoutConstant,
-    ffi.Pointer<ffi.Int32> WriteTotalTimeoutConstant,
+    int ReadTotalTimeoutConstant,
+    int WriteTotalTimeoutConstant,
   ) {
     return _A_Get_CommTimeout(
-      ReadTotalTimeoutConstant,
-      WriteTotalTimeoutConstant,
+      ReadTotalTimeoutConstant.toString().toNativeUtf8().cast<ffi.Int32>(),
+      WriteTotalTimeoutConstant.toString().toNativeUtf8().cast<ffi.Int32>(),
     );
   }
 

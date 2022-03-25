@@ -8,6 +8,7 @@
 .buildlog/
 .history
 .svn/
+.vscode
 
 # IntelliJ related
 *.iml
@@ -27,3 +28,5 @@
 .dart_tool/
 .packages
 build/
+
+test/output.log
