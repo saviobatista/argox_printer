@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
-
-import 'package:flutter/services.dart';
 import 'package:argox_printer/argox_printer.dart';
 
 void main() {
@@ -16,38 +13,35 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
-
-  @override
-  void initState() {
-    super.initState();
-    initPlatformState();
-  }
-
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    String platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    // We also handle the message potentially returning null.
-    try {} on PlatformException {
-      platformVersion = 'Failed to get platform version.';
-    }
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
-  }
+  final ArgoxPPLA _printer = ArgoxPPLA();
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Plugin example app'),
+          title: const Text('Printer sample'),
         ),
         body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+          child: TextButton(
+            child: const Icon(Icons.print),
+            onPressed: () {
+              try {
+                _printer.A_CreatePrn(0, 'test\\output.log');
+                _printer.A_Set_DebugDialog(1);
+                _printer.A_Set_Unit('m');
+                _printer.A_Clear_Memory();
+                _printer.A_Prn_Text(
+                    10, 10, 1, 2, 0, 1, 1, 'N', 2, 'Lorem ipsum');
+                _printer.A_Prn_Barcode(
+                    10, 40, 1, 'A', 0, 0, 20, 'B', 1, '1234');
+                _printer.A_Print_Out(1, 1, 2, 1);
+                _printer.A_ClosePrn();
+              } on ArgoxException {
+                print('Error occured');
+              }
+            },
+          ),
         ),
       ),
     );

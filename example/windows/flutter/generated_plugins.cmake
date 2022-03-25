@@ -3,7 +3,6 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  argox_printer
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)

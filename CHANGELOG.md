@@ -1,3 +1,7 @@
+## 0.0.9
+* All unit tests needed for basic use are done
+* Cleaned up some details in codes
+
 ## 0.0.8
 * New interface for using and loading automatically all DLL related
 * Refactored entire plugin structure using flutter create plugin
