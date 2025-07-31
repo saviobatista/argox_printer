@@ -1,27 +1,306 @@
 # Argox Printer
 
 [![pub package](https://img.shields.io/pub/v/argox_printer.svg)](https://pub.dev/packages/argox_printer)
+[![Dart](https://github.com/saviobatista/argox_printer/actions/workflows/dart.yml/badge.svg)](https://github.com/saviobatista/argox_printer/actions/workflows/dart.yml)
 
-Flutter package throught FFI for using Argox Label Printer
+A comprehensive Flutter plugin providing FFI (Foreign Function Interface) bindings for **Argox Label Printers**. This package enables direct communication with Argox printers through their native Windows DLL libraries, supporting the PPLA, PPLB, and PPLZ command languages.
 
-## Features
-- Complete integration with Argox Label Printers 
-* for now tested at PPLA driver in OS-2140 printer
+## 🚀 Features
 
-## Getting started
+- **Complete PPLA Driver Support** - 100+ functions for comprehensive printer control
+- **Multi-Driver Support** - PPLA, PPLB, and PPLZ command languages
+- **Direct FFI Integration** - High-performance native DLL communication
+- **Automatic DLL Loading** - Smart path resolution for development and production
+- **Rich Barcode Support** - 1D/2D barcodes including QR, PDF417, DataMatrix, and more
+- **Advanced Text Rendering** - TrueType fonts, Chinese fonts, and multiple orientations
+- **Image Processing** - BMP/PCX image conversion and printing
+- **USB/Serial/Network** - Multiple connection types supported
+- **Exception Handling** - Structured error handling with meaningful messages
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+## 🖨️ Tested Printers
 
-## Usage
-To use this plugin, add `argox_printer` as a [dependency in your pubspec.yaml file](https://flutter.dev/docs/development/platform-integration/platform-channels).
+- ✅ **OS-2140** (PPLA driver)
+- 🔄 More models depends on contributors
 
-### Examples
-Here are small examples that show you how to use the driver.
+## 📋 Prerequisites
+
+- **Windows OS** (32-bit or 64-bit)
+- **Flutter 2.5.0+**
+- **Dart 2.16.1+**
+- Argox printer connected via USB, Serial, or Network
+
+## 📦 Installation
+
+Add this to your package's `pubspec.yaml` file:
+
+```yaml
+dependencies:
+  argox_printer: ^0.0.9
+```
+
+Then run:
+
+```bash
+flutter pub get
+```
+
+## 🔧 Quick Start
+
+### Basic Usage
 
 ```dart
+import 'package:argox_printer/argox_printer.dart';
 
+void main() async {
+  // Initialize the PPLA driver
+  final printer = ArgoxPPLA();
+  
+  try {
+    // Create printer connection (0 = file output for testing)
+    printer.A_CreatePrn(0, 'output.log');
+    
+    // Configure printer settings
+    printer.A_Set_Unit('m');        // Set metric units
+    printer.A_Set_Darkness(12);     // Set print darkness (0-20)
+    printer.A_Clear_Memory();       // Clear printer memory
+    
+    // Print text
+    printer.A_Prn_Text(
+      10, 10,           // x, y coordinates
+      1,                // orientation (1=0°, 2=90°, 3=180°, 4=270°)
+      2, 0,             // font, type
+      1, 1,             // horizontal, vertical scale
+      'N',              // mode (N=normal)
+      0,                // numeric (auto-increment value)
+      'Hello, World!'   // text to print
+    );
+    
+    // Print barcode
+    printer.A_Prn_Barcode(
+      10, 50,           // x, y coordinates
+      1,                // orientation
+      'A',              // barcode type (Code 39)
+      2, 6,             // narrow, wide bar width
+      30,               // height
+      'N',              // mode
+      0,                // numeric
+      '123456789'       // barcode data
+    );
+    
+    // Execute print job
+    printer.A_Print_Out(1, 1, 1, 1); // width, height, copies, amount
+    
+    // Close connection
+    printer.A_ClosePrn();
+    
+    print('Print job completed successfully!');
+    
+  } on ArgoxException catch (e) {
+    print('Printer error: $e');
+  } catch (e) {
+    print('Unexpected error: $e');
+  }
+}
 ```
+
+### USB Printer Detection
+
+```dart
+void detectUSBPrinters() {
+  final printer = ArgoxPPLA();
+  
+  try {
+    // Check for USB printers
+    int bufferLen = printer.A_GetUSBBufferLen();
+    
+    if (bufferLen > 0) {
+      String usbData = printer.A_EnumUSB();
+      print('USB Printers found: $usbData');
+      
+      // Connect to first USB printer
+      printer.A_CreateUSBPort(1);
+      print('Connected to USB printer');
+    } else {
+      print('No USB printers detected');
+    }
+  } catch (e) {
+    print('USB detection failed: $e');
+  }
+}
+```
+
+### Advanced Example: Label with QR Code
+
+```dart
+void printLabelWithQR() {
+  final printer = ArgoxPPLA();
+  
+  try {
+    printer.A_CreatePrn(0, 'qr_label.log');
+    printer.A_Set_Unit('m');
+    printer.A_Set_Darkness(15);
+    printer.A_Clear_Memory();
+    
+    // Print label title
+    printer.A_Prn_Text(20, 10, 1, 4, 0, 2, 2, 'N', 0, 'PRODUCT LABEL');
+    
+    // Print product info
+    printer.A_Prn_Text(20, 40, 1, 2, 0, 1, 1, 'N', 0, 'Product: Widget ABC');
+    printer.A_Prn_Text(20, 60, 1, 2, 0, 1, 1, 'N', 0, 'SKU: WGT-001');
+    printer.A_Prn_Text(20, 80, 1, 2, 0, 1, 1, 'N', 0, 'Date: ${DateTime.now().toString().substring(0, 10)}');
+    
+    // Print QR code
+    printer.A_Bar2d_QR_A(
+      150, 10,          // position
+      1,                // orientation
+      2,                // multiplier
+      3,                // value
+      'N',              // mode
+      0,                // numeric
+      'https://example.com/product/WGT-001'  // QR data
+    );
+    
+    // Print border
+    printer.A_Draw_Box('N', 5, 5, 240, 120, 2, 2);
+    
+    printer.A_Print_Out(1, 1, 1, 1);
+    printer.A_ClosePrn();
+    
+  } on ArgoxException catch (e) {
+    print('Print failed: $e');
+  }
+}
+```
+
+## 🔗 Connection Types
+
+### File Output (for testing)
+```dart
+printer.A_CreatePrn(0, 'test_output.log');
+```
+
+### USB Connection
+```dart
+// Method 1: Direct USB port
+printer.A_CreateUSBPort(1);
+
+// Method 2: USB device path
+printer.A_CreatePrn(12, 'USB_DEVICE_PATH');
+```
+
+### Serial Port
+```dart
+printer.A_CreatePrn(4, ''); // COM1
+printer.A_CreatePrn(5, ''); // COM2
+```
+
+### Network/TCP
+```dart
+printer.A_CreatePrn(13, '192.168.1.100'); // Default port 9100
+printer.A_CreatePrn(13, '192.168.1.100:8080'); // Custom port
+```
+
+## 📚 API Reference
+
+The package provides access to 100+ PPLA functions organized in categories:
+
+### Core Functions
+- `A_CreatePrn()` - Initialize printer connection
+- `A_ClosePrn()` - Close printer connection  
+- `A_Print_Out()` - Execute print job
+- `A_Clear_Memory()` - Clear printer memory
+
+### Text & Fonts
+- `A_Prn_Text()` - Print text with built-in fonts
+- `A_Prn_Text_TrueType()` - Print with TrueType fonts
+- `A_Prn_Text_Chinese()` - Chinese character support
+
+### Barcodes & 2D Codes
+- `A_Prn_Barcode()` - 1D barcodes (Code 39, 128, UPC, etc.)
+- `A_Bar2d_QR_A()` - QR codes
+- `A_Bar2d_PDF417()` - PDF417 2D barcodes
+- `A_Bar2d_DataMatrix()` - DataMatrix codes
+
+### Graphics & Drawing
+- `A_Get_Graphic()` - Load images from files
+- `A_Draw_Box()` - Draw rectangles
+- `A_Draw_Line()` - Draw lines
+
+### Configuration
+- `A_Set_Darkness()` - Print density (0-20)
+- `A_Set_Speed()` - Print speed
+- `A_Set_Unit()` - Measurement units (metric/inches)
+- `A_Set_Sensor_Mode()` - Paper sensing mode
+
+For complete API documentation, see [DOCUMENTATION.md](DOCUMENTATION.md).
+
+## ⚠️ Error Handling
+
+The package includes structured exception handling:
+
+```dart
+try {
+  printer.A_Print_Out(1, 1, 1, 1);
+} on ArgoxException catch (e) {
+  // Handle printer-specific errors
+  print('Printer error code: ${e.code}');
+  print('Error message: $e');
+}
+```
+
+Common error codes:
+- `1000` - Print out failed
+- `2041` - Memory allocation failed  
+- `2301` - Invalid arguments
+- `4001` - No USB printer connected
+
+See README for complete error code reference below.
+
+## 🧪 Testing
+
+Run the included tests:
+
+```bash
+flutter test
+```
+
+The tests verify:
+- DLL loading and version compatibility
+- Basic printing functionality  
+- Error handling
+- Connection methods
+
+## 📱 Platform Support
+
+| Platform | Support | Notes |
+|----------|---------|-------|
+| Windows  | ✅ Full | Native DLL integration |
+| macOS    | ❌      | Windows DLLs not compatible |
+| Linux    | ❌      | Windows DLLs not compatible |
+| Web      | ❌      | FFI not supported |
+| Mobile   | ❌      | Windows DLLs not compatible |
+
+## 🤝 Contributing
+
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new functionality
+4. Ensure all tests pass
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+- 📖 **Documentation**: [Complete API Reference](DOCUMENTATION.md)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/saviobatista/argox_printer/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/saviobatista/argox_printer/discussions)
+
+---
 
 ## WINPPLA DLL Error Code List
 | Code | Method | Description |
