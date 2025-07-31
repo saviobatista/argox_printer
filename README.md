@@ -1,7 +1,7 @@
 # Argox Printer
 
 [![pub package](https://img.shields.io/pub/v/argox_printer.svg)](https://pub.dev/packages/argox_printer)
-[![Dart](https://github.com/saviobatista/argox_printer/actions/workflows/dart.yml/badge.svg)](https://github.com/saviobatista/argox_printer/actions/workflows/dart.yml)
+[![Dart CI](https://github.com/saviobatista/argox_printer/actions/workflows/dart.yml/badge.svg)](https://github.com/saviobatista/argox_printer/actions/workflows/dart.yml)
 
 A comprehensive Flutter plugin providing FFI (Foreign Function Interface) bindings for **Argox Label Printers**. This package enables direct communication with Argox printers through their native Windows DLL libraries, supporting the PPLA, PPLB, and PPLZ command languages.
 

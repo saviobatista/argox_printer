@@ -38,7 +38,7 @@ class _MyAppState extends State<MyApp> {
                 _printer.A_Print_Out(1, 1, 2, 1);
                 _printer.A_ClosePrn();
               } on ArgoxException {
-                print('Error occured');
+                debugPrint('Error occurred');
               }
             },
           ),
