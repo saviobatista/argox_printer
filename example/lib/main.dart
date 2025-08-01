@@ -13,7 +13,22 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final ArgoxPPLA _printer = ArgoxPPLA();
+  ArgoxPPLA? _printer;
+  String? _initError;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializePrinter();
+  }
+
+  void _initializePrinter() {
+    try {
+      _printer = ArgoxPPLA();
+    } catch (e) {
+      _initError = e.toString();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,27 +38,45 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Printer sample'),
         ),
         body: Center(
-          child: TextButton(
-            child: const Icon(Icons.print),
-            onPressed: () {
-              try {
-                _printer.A_CreatePrn(0, 'test\\output.log');
-                _printer.A_Set_DebugDialog(1);
-                _printer.A_Set_Unit('m');
-                _printer.A_Clear_Memory();
-                _printer.A_Prn_Text(
-                    10, 10, 1, 2, 0, 1, 1, 'N', 2, 'Lorem ipsum');
-                _printer.A_Prn_Barcode(
-                    10, 40, 1, 'A', 0, 0, 20, 'B', 1, '1234');
-                _printer.A_Print_Out(1, 1, 2, 1);
-                _printer.A_ClosePrn();
-              } on ArgoxException {
-                debugPrint('Error occurred');
-              }
-            },
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (_initError != null)
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    'Printer initialization failed: $_initError',
+                    style: const TextStyle(color: Colors.red),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              TextButton(
+                child: const Icon(Icons.print),
+                onPressed: _printer != null ? _printSample : null,
+              ),
+              if (_printer == null && _initError == null)
+                const CircularProgressIndicator(),
+            ],
           ),
         ),
       ),
     );
+  }
+
+  void _printSample() {
+    if (_printer == null) return;
+
+    try {
+      _printer!.A_CreatePrn(0, 'test\\output.log');
+      _printer!.A_Set_DebugDialog(1);
+      _printer!.A_Set_Unit('m');
+      _printer!.A_Clear_Memory();
+      _printer!.A_Prn_Text(10, 10, 1, 2, 0, 1, 1, 'N', 2, 'Lorem ipsum');
+      _printer!.A_Prn_Barcode(10, 40, 1, 'A', 0, 0, 20, 'B', 1, '1234');
+      _printer!.A_Print_Out(1, 1, 2, 1);
+      _printer!.A_ClosePrn();
+    } on ArgoxException {
+      debugPrint('Error occurred');
+    }
   }
 }

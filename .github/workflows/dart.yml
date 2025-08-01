@@ -1,4 +1,4 @@
-name: Dart CI
+name: Windows CI
 
 on:
   push:
@@ -7,41 +7,8 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Setup Dart
-      uses: dart-lang/setup-dart@v1
-      with:
-        sdk: stable
-    
-    - name: Install dependencies
-      run: dart pub get
-    
-    - name: Verify formatting
-      run: dart format --output=none --set-exit-if-changed .
-    
-    - name: Analyze project source
-      run: dart analyze
-    
-    - name: Run tests
-      run: dart test
-    
-    - name: Run tests with coverage
-      run: dart test --coverage=coverage
-    
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: coverage/lcov.info
-        fail_ci_if_error: false
-
-  example_test:
-    runs-on: ubuntu-latest
-    needs: test
+  windows_test:
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v4
@@ -53,6 +20,18 @@ jobs:
         channel: 'stable'
     
     - name: Install dependencies
+      run: flutter pub get
+    
+    - name: Verify formatting
+      run: dart format --output=none --set-exit-if-changed .
+    
+    - name: Analyze project source
+      run: flutter analyze
+    
+    - name: Run tests
+      run: flutter test
+    
+    - name: Install example dependencies
       run: |
         cd example
         flutter pub get
@@ -66,24 +45,6 @@ jobs:
       run: |
         cd example
         flutter test
-
-  windows_test:
-    runs-on: windows-latest
-    needs: test
-
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '3.19.0'
-        channel: 'stable'
-    
-    - name: Install dependencies
-      run: |
-        cd example
-        flutter pub get
     
     - name: Build Windows example
       run: |
